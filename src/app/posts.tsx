@@ -8,7 +8,6 @@ import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import { colors } from '@/constants/theme';
 import { ApiPost, getNewsFeed } from '@/lib/api';
-import { formatCountLabel } from '@/utils/format';
 
 export default function PostsScreen() {
   const [items, setItems] = useState<ApiPost[]>([]);
@@ -72,9 +71,9 @@ function PostRow({ post }: { post: ApiPost }) {
         </View>
       )}
       <View style={styles.actions}>
-        <View style={styles.actionItem}><Feather name="message-circle" size={17} color={colors.muted} /><Text style={styles.meta}>{formatCountLabel(post.comments ?? 0, 'commentaire', 'commentaires')}</Text></View>
-        <View style={styles.actionItem}><Feather name="repeat" size={17} color={colors.muted} /><Text style={styles.meta}>{formatCountLabel(post.shares ?? 0, 'partage', 'partages')}</Text></View>
-        <View style={styles.actionItem}><FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.danger : colors.muted} /><Text style={[styles.meta, post.liked && styles.liked]}>{formatCountLabel(post.likes ?? 0, 'like', 'likes')}</Text></View>
+        <View style={styles.actionItem}><Feather name="message-circle" size={17} color={colors.muted} /><Text style={styles.meta}>{post.comments ?? 0}</Text></View>
+        <View style={styles.actionItem}><Feather name="repeat" size={17} color={colors.muted} /><Text style={styles.meta}>{post.shares ?? 0}</Text></View>
+        <View style={styles.actionItem}><FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.danger : colors.muted} /><Text style={[styles.meta, post.liked && styles.liked]}>{post.likes ?? 0}</Text></View>
         <Feather name="share" size={17} color={colors.muted} />
       </View>
     </View>

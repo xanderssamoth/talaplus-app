@@ -18,6 +18,7 @@ export default function ProfileScreen() {
     ['clock', t('history')],
     ['heart', t('watchlist')],
     ['credit-card', t('subscriptions')],
+    ['dollar-sign', t('payments')],
     ['share-2', t('referral')],
     ['settings', t('settings')],
   ];
@@ -63,7 +64,10 @@ export default function ProfileScreen() {
         </View>
 
         {menu.map(([icon, label]) => (
-          <Pressable key={label} style={styles.menuItem} onPress={() => label === t('subscriptions') && router.push('/subscription')}>
+          <Pressable key={label} style={styles.menuItem} onPress={() => {
+            if (label === t('subscriptions')) router.push('/subscription');
+            if (label === t('payments')) router.push('/payments');
+          }}>
             <Feather name={icon as keyof typeof Feather.glyphMap} size={18} color={colors.text} />
             <Text style={styles.menuText}>{label}</Text>
             <Feather name="chevron-right" size={18} color={colors.muted} />

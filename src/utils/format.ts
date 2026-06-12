@@ -12,3 +12,12 @@ export function compactNumber(value: number) {
 export function formatCountLabel(value: number, singular: string, plural: string) {
   return `${compactNumber(value)} ${pluralize(value, singular, plural)}`;
 }
+
+export function compactBadgeNumber(value: number) {
+  if (value <= 0) return '';
+  if (value < 1_000) return String(value);
+  if (value < 10_000) return value % 1_000 === 0 ? `${Math.floor(value / 1_000)}k` : `${Math.floor(value / 1_000)}k+`;
+  if (value < 1_000_000) return value % 1_000 === 0 ? `${Math.floor(value / 1_000)}k` : `${Math.floor(value / 1_000)}k+`;
+  if (value < 1_000_000_000) return value % 1_000_000 === 0 ? `${Math.floor(value / 1_000_000)}M` : `${Math.floor(value / 1_000_000)}M+`;
+  return value % 1_000_000_000 === 0 ? `${Math.floor(value / 1_000_000_000)}B` : `${Math.floor(value / 1_000_000_000)}B+`;
+}

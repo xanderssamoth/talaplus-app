@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import BrandLogo from '@/components/BrandLogo';
 import SearchOverlay from '@/components/SearchOverlay';
 import { colors } from '@/constants/theme';
+import { getUnreadNotificationsCount } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
+import { compactBadgeNumber } from '@/utils/format';
 import { getAvatarSource } from '@/utils/user';
 
 type AppHeaderProps = {
@@ -18,8 +20,17 @@ type AppHeaderProps = {
 
 export default function AppHeader({ title, showLogo, showAvatar, searchType = 'media', right }: AppHeaderProps) {
   const [searchVisible, setSearchVisible] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const user = getCurrentUser();
   const avatarSource = getAvatarSource(user);
+
+  useEffect(() => {
+    getUnreadNotificationsCount().then(setUnreadCount).catch(() => setUnreadCount(0));
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    getUnreadNotificationsCount().then(setUnreadCount).catch(() => setUnreadCount(0));
+  }, []));
 
   return (
     <>
@@ -41,9 +52,11 @@ export default function AppHeader({ title, showLogo, showAvatar, searchType = 'm
               </Pressable>
               <Pressable style={styles.iconButton} onPress={() => router.push('/notifications')}>
                 <Feather name="bell" size={19} color={colors.text} />
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>3</Text>
-                </View>
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{compactBadgeNumber(unreadCount)}</Text>
+                  </View>
+                )}
               </Pressable>
               {showAvatar && (
                 avatarSource ? (

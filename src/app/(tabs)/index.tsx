@@ -11,7 +11,6 @@ import PostMediaCarousel from '@/components/PostMediaCarousel';
 import SectionTitle from '@/components/SectionTitle';
 import { colors } from '@/constants/theme';
 import { ApiHashtag, ApiMedia, ApiPost, getHashtags, getNewsFeed, getPopularMedia, getRecentMedia } from '@/lib/api';
-import { formatCountLabel } from '@/utils/format';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -187,15 +186,15 @@ function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost
       <View style={styles.threadActions}>
         <View style={styles.postMetaItem}>
           <Feather name="message-circle" size={17} color={colors.muted} />
-          <Text style={styles.postMeta}>{formatCountLabel(post.comments ?? 0, 'commentaire', 'commentaires')}</Text>
+          <Text style={styles.postMeta}>{post.comments ?? 0}</Text>
         </View>
         <View style={styles.postMetaItem}>
           <Feather name="repeat" size={17} color={colors.muted} />
-          <Text style={styles.postMeta}>{formatCountLabel(post.shares ?? 0, 'partage', 'partages')}</Text>
+          <Text style={styles.postMeta}>{post.shares ?? 0}</Text>
         </View>
         <View style={styles.postMetaItem}>
           <FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.danger : colors.muted} />
-          <Text style={[styles.postMeta, post.liked && styles.liked]}>{formatCountLabel(post.likes ?? 0, 'like', 'likes')}</Text>
+          <Text style={[styles.postMeta, post.liked && styles.liked]}>{post.likes ?? 0}</Text>
         </View>
         <Feather name="share" size={17} color={colors.muted} />
       </View>

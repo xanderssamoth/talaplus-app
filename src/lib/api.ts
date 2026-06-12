@@ -85,6 +85,31 @@ export type ApiMediaStats = {
   liked: boolean;
 };
 
+export type ApiNotification = {
+  id: string;
+  type: string;
+  text: string;
+  strongText?: string;
+  image?: string;
+  icon?: string;
+  iconColor?: string;
+  route?: string;
+  unread: boolean;
+  canMute: boolean;
+  fromUserId?: string;
+  toUserId?: string;
+  time?: string;
+};
+
+export type ApiPayment = {
+  id: string;
+  title: string;
+  amount: number;
+  currency: string;
+  status: string;
+  time?: string;
+};
+
 export type PaginatedResult<T> = {
   items: T[];
   lastPage: number;
@@ -328,6 +353,14 @@ function withQuery(path: string, params: Record<string, string | number | undefi
   return query ? `${path}?${query}` : path;
 }
 
+function currentUserParam() {
+  return getCurrentUser().id;
+}
+
+function withCurrentUser(params: Record<string, string | number | undefined> = {}) {
+  return { user_id: currentUserParam(), ...params };
+}
+
 export function normalizeMedia(item: unknown): ApiMedia {
   const root = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
   const source = pickObject(root, ['media']) ?? root;
@@ -440,6 +473,113 @@ export function normalizePost(item: unknown): ApiPost {
   };
 }
 
+function userFullName(user: Record<string, unknown> | null, fallback = 'TALA+') {
+  if (!user) return fallback;
+  const name = [pickString(user, ['firstname', 'first_name']), pickString(user, ['lastname', 'surname', 'last_name'])].filter(Boolean).join(' ').trim();
+  return name || pickString(user, ['username', 'email'], fallback);
+}
+
+function productKind(product: Record<string, unknown> | null) {
+  return pickString(product ?? {}, ['type']) === 'service' ? 'service' : 'produit';
+}
+
+function notificationImage(source: Record<string, unknown>, type: string) {
+  const fromUser = pickObject(source, ['from_user', 'fromUser', 'user']);
+  const toUser = pickObject(source, ['to_user', 'toUser']);
+  const media = pickObject(source, ['media']);
+  const product = pickObject(source, ['product']);
+
+  if (type === 'welcome_new_user') return '';
+  if (type === 'media_created') return pickString(toUser ?? {}, ['avatar_url', 'avatar']);
+  if (type.startsWith('media_')) return pickImage(media ?? source);
+  if (type === 'post_sent' || type === 'comment_sent') return pickString(fromUser ?? {}, ['avatar_url', 'avatar']);
+  if (type.startsWith('product_') || type === 'stock_empty') return pickImage(product ?? source);
+  return pickImage(source);
+}
+
+function notificationRoute(source: Record<string, unknown>, type: string) {
+  const media = pickObject(source, ['media']);
+  const product = pickObject(source, ['product']);
+  const comment = pickObject(source, ['comment']);
+  const mediaId = pickString(media ?? source, ['media_id', 'mediaId', 'id']);
+  const productId = pickString(product ?? source, ['product_id', 'productId', 'id']);
+  const commentId = pickString(comment ?? source, ['comment_id', 'commentId', 'id']);
+
+  if (type === 'welcome_new_user') return '/about';
+  if (type.startsWith('payment_')) return '/payments';
+  if (type.startsWith('product_') || type === 'stock_empty') return productId ? `/productDetails/${productId}` : undefined;
+  if (type === 'post_sent' || type === 'comment_sent') return commentId ? `/posts/${commentId}` : undefined;
+  if (type.startsWith('media_')) return mediaId ? `/mediaDetails/${mediaId}` : undefined;
+  return undefined;
+}
+
+export function normalizeNotification(item: unknown): ApiNotification {
+  const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+  const type = pickString(source, ['type']);
+  const fromUser = pickObject(source, ['from_user', 'fromUser']);
+  const toUser = pickObject(source, ['to_user', 'toUser']);
+  const media = pickObject(source, ['media']);
+  const product = pickObject(source, ['product']);
+  const comment = pickObject(source, ['comment']);
+  const answered = pickObject(source, ['answered_for_comment', 'answeredForComment']);
+  const fromName = userFullName(fromUser);
+  const toName = userFullName(toUser, userFullName(pickObject(source, ['user'])));
+  const mediaTitle = pickLocalizedString(media ?? source, ['media_title', 'title', 'name'], 'vid\u00e9o');
+  const productName = pickLocalizedString(product ?? source, ['product_name', 'name', 'title'], productKind(product));
+  const kind = productKind(product);
+  const answeredKind = pickString(answered ?? {}, ['type']) === 'comment' ? 'commentaire' : 'post';
+  const language = (i18n.language || 'fr').split('-')[0];
+  const productLabel = language === 'en' ? (kind === 'service' ? 'service' : 'product') : language === 'ln' ? (kind === 'service' ? 'service' : 'biloko') : kind;
+  const answeredLabel = language === 'en' ? (answeredKind === 'commentaire' ? 'comment' : 'post') : language === 'ln' ? (answeredKind === 'commentaire' ? 'commentaire' : 'post') : answeredKind;
+
+  const messages: Record<string, { text: string; strongText?: string; canMute?: boolean; icon?: string; iconColor?: string }> = {
+    welcome_new_user: { text: language === 'en' ? `Welcome to TALA+ ${toName}` : language === 'ln' ? `Boyei malamu na TALA+ ${toName}` : `Bienvenue sur la plateforme TALA+ ${toName}`, strongText: toName },
+    media_created: { text: language === 'en' ? `${fromName} sent a video` : language === 'ln' ? `${fromName} atindi video` : `${fromName} a envoy\u00e9 une vid\u00e9o`, strongText: fromName },
+    media_accepted: { text: language === 'en' ? `Your video ${mediaTitle} was accepted` : language === 'ln' ? `Video na yo ${mediaTitle} endimami` : `Votre vid\u00e9o ${mediaTitle} a \u00e9t\u00e9 accept\u00e9e`, strongText: mediaTitle },
+    media_rejected: { text: language === 'en' ? `Your video ${mediaTitle} was rejected` : language === 'ln' ? `Video na yo ${mediaTitle} eboyami` : `Votre vid\u00e9o ${mediaTitle} a \u00e9t\u00e9 refus\u00e9e`, strongText: mediaTitle },
+    media_published: { text: language === 'en' ? `${fromName} published a new video` : language === 'ln' ? `${fromName} abimisi video ya sika` : `${fromName} a publi\u00e9 une nouvelle vid\u00e9o`, strongText: fromName, canMute: true },
+    post_sent: { text: language === 'en' ? `${fromName} sent a new post` : language === 'ln' ? `${fromName} atindi post ya sika` : `${fromName} a envoy\u00e9 un nouveau post`, strongText: fromName, canMute: true },
+    comment_sent: { text: language === 'en' ? `${fromName} commented on your ${answeredLabel}` : language === 'ln' ? `${fromName} akomi commentaire na ${answeredLabel} na yo` : `${fromName} a comment\u00e9 votre ${answeredLabel}`, strongText: fromName, canMute: true },
+    product_added: { text: language === 'en' ? `${fromName} sent a ${productLabel}` : language === 'ln' ? `${fromName} atindi ${productLabel}` : `${fromName} a envoy\u00e9 un ${productLabel}`, strongText: fromName },
+    product_accepted: { text: language === 'en' ? `Your ${productLabel} ${productName} was accepted` : language === 'ln' ? `${productLabel} na yo ${productName} endimami` : `Votre ${productLabel} ${productName} a \u00e9t\u00e9 accept\u00e9`, strongText: productName },
+    product_rejected: { text: language === 'en' ? `Your ${productLabel} ${productName} was rejected` : language === 'ln' ? `${productLabel} na yo ${productName} eboyami` : `Votre ${productLabel} ${productName} a \u00e9t\u00e9 refus\u00e9`, strongText: productName },
+    product_ordered: { text: language === 'en' ? `${fromName} ordered your ${productLabel}` : language === 'ln' ? `${fromName} asombi ${productLabel} na yo` : `${fromName} a command\u00e9 votre ${productLabel}`, strongText: fromName },
+    stock_empty: { text: language === 'en' ? 'Your product stock is almost empty' : language === 'ln' ? 'Stock ya produit na yo elingi kosila' : 'Le stock pour votre produit est bient\u00f4t arriv\u00e9 \u00e0 terme' },
+    payment_pending: { text: language === 'en' ? 'Your payment is pending' : language === 'ln' ? 'Lifuti na yo ezali kozela' : 'Votre paiement est en cours', icon: 'dollar-sign', iconColor: '#F6C343' },
+    payment_successful: { text: language === 'en' ? 'Your payment succeeded' : language === 'ln' ? 'Lifuti na yo elongi' : 'Votre paiement a r\u00e9ussi', icon: 'dollar-sign', iconColor: '#22C55E' },
+    payment_failed: { text: language === 'en' ? 'Your payment failed' : language === 'ln' ? 'Lifuti na yo elongi te' : 'Votre paiement a \u00e9chou\u00e9', icon: 'dollar-sign', iconColor: '#EF4444' },
+  };
+  const message = messages[type] ?? { text: pickLocalizedString(source, ['message', 'notification_content', 'content'], 'Notification') };
+
+  return {
+    id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
+    type,
+    text: message.text,
+    strongText: message.strongText,
+    image: notificationImage(source, type),
+    icon: message.icon,
+    iconColor: message.iconColor,
+    route: notificationRoute(source, type),
+    unread: !pickBoolean(source, ['read', 'is_read', 'seen']) && !pickString(source, ['read_at', 'seen_at']),
+    canMute: Boolean(message.canMute),
+    fromUserId: pickString(fromUser ?? source, ['from_user_id', 'fromUserId', 'user_id', 'id']),
+    toUserId: pickString(toUser ?? source, ['to_user_id', 'toUserId', 'user_id', 'id']),
+    time: pickString(source, ['created_at_explicit', 'created_at', 'createdAt']),
+  };
+}
+
+function normalizePayment(item: unknown): ApiPayment {
+  const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+  return {
+    id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
+    title: pickLocalizedString(source, ['payment_title', 'title', 'description', 'label'], 'Paiement'),
+    amount: pickNumber(source, ['amount', 'price', 'total']),
+    currency: pickString(source, ['currency', 'devise'], 'USD'),
+    status: pickString(source, ['status', 'state'], 'pending'),
+    time: pickString(source, ['created_at_explicit', 'created_at', 'createdAt']),
+  };
+}
+
 async function list<T>(path: string, normalize: (item: unknown, index: number) => T, page?: number): Promise<PaginatedResult<T>> {
   const response = await apiRequest<unknown>(`${path}${pageParam(page)}`);
   const items = asArray(response.data).map(normalize);
@@ -451,11 +591,11 @@ async function list<T>(path: string, normalize: (item: unknown, index: number) =
 }
 
 export function getPopularMedia(page?: number) {
-  return list('/v1/media/popular/list', normalizeMedia, page);
+  return list(withQuery('/v1/media/popular/list', withCurrentUser({ page })), normalizeMedia);
 }
 
 export function getRecentMedia(page?: number) {
-  return list('/v1/media', normalizeMedia, page);
+  return list(withQuery('/v1/media', withCurrentUser({ page })), normalizeMedia);
 }
 
 export function getUserMedia(userId: string, page?: number) {
@@ -463,11 +603,12 @@ export function getUserMedia(userId: string, page?: number) {
 }
 
 export function getMediaByType(type: string, page?: number) {
-  return list(withQuery('/v1/media/filter/list', { type, page }), normalizeMedia);
+  return list(withQuery('/v1/media/filter/list', withCurrentUser({ type, page })), normalizeMedia);
 }
 
 export function getMediaChildren(mediaId: string, page?: number) {
   return list(withQuery('/v1/media/filter/list', {
+    user_id: currentUserParam(),
     belongs_to: mediaId,
     belongsTo: mediaId,
     parent_id: mediaId,
@@ -480,6 +621,7 @@ export function getMediaChildren(mediaId: string, page?: number) {
 
 export function getRelatedMedia(type: string, excludeBelongsTo?: string, page?: number) {
   return list(withQuery('/v1/media/filter/list', {
+    user_id: currentUserParam(),
     type,
     not_belongs_to: excludeBelongsTo,
     except_belongs_to: excludeBelongsTo,
@@ -498,11 +640,11 @@ export async function getMedia(id: string) {
 }
 
 export function getHashtags(page?: number) {
-  return list('/v1/hashtag', normalizeHashtag, page);
+  return list(withQuery('/v1/hashtag', withCurrentUser({ page })), normalizeHashtag);
 }
 
 export async function getHashtagEntities(hashtag: string) {
-  const response = await apiRequest<unknown>(`/v1/hashtag/${encodeURIComponent(hashtag.replace(/^#/, ''))}/entities`);
+  const response = await apiRequest<unknown>(withQuery(`/v1/hashtag/${encodeURIComponent(hashtag.replace(/^#/, ''))}/entities`, withCurrentUser()));
   const data = response.data;
   const source = (data && typeof data === 'object' && !Array.isArray(data) ? data : {}) as Record<string, unknown>;
   const media = pickArray(source, ['videos', 'media', 'medias', 'movies']).map(normalizeMedia);
@@ -520,14 +662,19 @@ export async function getHashtagEntities(hashtag: string) {
 }
 
 export function getNewsFeed(page?: number) {
-  return list('/v1/comment/news-feed', normalizePost, page)
-    .catch(() => list(withQuery('/v1/comment', { type: 'post', page }), normalizePost))
+  return list(withQuery('/v1/comment/news-feed', withCurrentUser({ page })), normalizePost)
+    .catch(() => list(withQuery('/v1/comment', withCurrentUser({ type: 'post', page })), normalizePost))
     .then(async (result) => {
       const posts = result.items.filter((item) => item.commentType === 'post' || !item.commentType);
       const items = await Promise.all(posts.map(enrichPostFiles));
 
       return { ...result, items };
     });
+}
+
+export async function getPost(id: string) {
+  const response = await apiRequest<unknown>(withQuery(`/v1/comment/${encodeURIComponent(id)}`, withCurrentUser()));
+  return normalizePost(Array.isArray(response.data) ? response.data[0] : response.data);
 }
 
 async function enrichPostFiles(post: ApiPost): Promise<ApiPost> {
@@ -550,6 +697,7 @@ async function enrichPostFiles(post: ApiPost): Promise<ApiPost> {
 
 export function getMediaComments(mediaId: string, page?: number) {
   return list(withQuery('/v1/comment', {
+    user_id: currentUserParam(),
     media_id: mediaId,
     for_entity: 'media',
     type: 'comment',
@@ -564,6 +712,7 @@ export function getMediaComments(mediaId: string, page?: number) {
 
 export function getProductComments(productId: string, page?: number) {
   return list(withQuery('/v1/comment', {
+    user_id: currentUserParam(),
     product_id: productId,
     for_entity: 'product',
     type: 'comment',
@@ -577,7 +726,7 @@ export function getProductComments(productId: string, page?: number) {
 }
 
 export function getCategories(page?: number) {
-  return list('/v1/category', normalizeCategory, page);
+  return list(withQuery('/v1/category', withCurrentUser({ page })), normalizeCategory);
 }
 
 export function getCategoriesForType(forType: string) {
@@ -585,19 +734,20 @@ export function getCategoriesForType(forType: string) {
 }
 
 export function getPopularProducts(page?: number) {
-  return list('/v1/product/popular/list', normalizeProduct, page);
+  return list(withQuery('/v1/product/popular/list', withCurrentUser({ page })), normalizeProduct);
 }
 
 export function getPromotedProducts(page?: number) {
-  return list('/v1/product/promoted/list', normalizeProduct, page);
+  return list(withQuery('/v1/product/promoted/list', withCurrentUser({ page })), normalizeProduct);
 }
 
 export function getRecentProducts(page?: number) {
-  return list('/v1/product', normalizeProduct, page);
+  return list(withQuery('/v1/product', withCurrentUser({ page })), normalizeProduct);
 }
 
 export function getProductsByCategory(categoryId: string, page?: number) {
   return list(withQuery('/v1/product/filter/list', {
+    user_id: currentUserParam(),
     category_id: categoryId,
     category: categoryId,
     categoryId,
@@ -606,7 +756,7 @@ export function getProductsByCategory(categoryId: string, page?: number) {
 }
 
 export async function getProduct(id: string) {
-  const response = await apiRequest<unknown>(`/v1/product/${encodeURIComponent(id)}`);
+  const response = await apiRequest<unknown>(withQuery(`/v1/product/${encodeURIComponent(id)}`, withCurrentUser()));
   const data = Array.isArray(response.data) ? response.data[0] : response.data;
   return normalizeProduct(data);
 }
@@ -643,9 +793,9 @@ export function likeMedia(mediaId: string, action: 'add' | 'remove' = 'add') {
 
 export async function getMediaStats(mediaId: string): Promise<ApiMediaStats> {
   const [views, plays, likes] = await Promise.all([
-    apiRequest<unknown[]>(`/v1/media/${encodeURIComponent(mediaId)}/view`).catch(() => ({ data: [], count: 0 })),
-    apiRequest<unknown[]>(`/v1/media/${encodeURIComponent(mediaId)}/play`).catch(() => ({ data: [], count: 0 })),
-    apiRequest<unknown[]>(`/v1/media/${encodeURIComponent(mediaId)}/like`).catch(() => ({ data: [], count: 0 })),
+    apiRequest<unknown[]>(withQuery(`/v1/media/${encodeURIComponent(mediaId)}/view`, withCurrentUser())).catch(() => ({ data: [], count: 0 })),
+    apiRequest<unknown[]>(withQuery(`/v1/media/${encodeURIComponent(mediaId)}/play`, withCurrentUser())).catch(() => ({ data: [], count: 0 })),
+    apiRequest<unknown[]>(withQuery(`/v1/media/${encodeURIComponent(mediaId)}/like`, withCurrentUser())).catch(() => ({ data: [], count: 0 })),
   ]);
 
   const likeItems = asArray(likes.data);
@@ -708,4 +858,68 @@ export function toggleSubscription(userId: string, action: 'add' | 'remove' = 'a
   return apiRequest(`/v1/user/${encodeURIComponent(user.id)}/subscription/${encodeURIComponent(userId)}`, {
     method: action === 'add' ? 'POST' : 'DELETE',
   });
+}
+
+export function saveMediaProgress(mediaId: string, percentage: number) {
+  const user = getCurrentUser();
+  return apiRequest('/v1/media/progress', {
+    method: 'POST',
+    body: JSON.stringify({
+      media_id: mediaId,
+      percentage: Math.max(0, Math.min(Math.round(percentage), 100)),
+      user_id: user.id,
+    }),
+  });
+}
+
+export function getNotifications(page?: number) {
+  const userId = currentUserParam();
+  const keepCurrentUserNotifications = (result: PaginatedResult<ApiNotification>) => ({
+    ...result,
+    items: result.items.filter((item) => !item.toUserId || item.toUserId === userId),
+  });
+
+  return list(withQuery(`/v1/notification/user/${encodeURIComponent(userId)}`, { page }), normalizeNotification)
+    .catch(() => list(withQuery('/v1/notification/user-notifications', { to_user_id: userId, user_id: userId, page }), normalizeNotification))
+    .catch(() => list(withQuery('/v1/notification', { to_user_id: userId, user_id: userId, page }), normalizeNotification))
+    .then(keepCurrentUserNotifications);
+}
+
+export async function getUnreadNotificationsCount() {
+  const userId = currentUserParam();
+  const response = await apiRequest<unknown>(withQuery(`/v1/notification/user/${encodeURIComponent(userId)}`, { unread: 1 }))
+    .catch(() => apiRequest<unknown>(withQuery('/v1/notification/user-notifications', { to_user_id: userId, user_id: userId, unread: 1 })))
+    .catch(() => apiRequest<unknown>(withQuery('/v1/notification', { to_user_id: userId, user_id: userId, unread: 1 })));
+  const unread = asArray(response.data)
+    .map(normalizeNotification)
+    .filter((item) => (!item.toUserId || item.toUserId === userId) && item.unread);
+
+  return response.count ?? unread.length;
+}
+
+export function markNotificationAsRead(notificationId: string) {
+  const options = {
+    method: 'PATCH',
+    body: JSON.stringify({ user_id: currentUserParam() }),
+  };
+
+  return apiRequest(`/v1/notification/${encodeURIComponent(notificationId)}/read`, options)
+    .catch(() => apiRequest(`/v1/notification/${encodeURIComponent(notificationId)}/mark-as-read`, options))
+    .catch(() => apiRequest(`/v1/notification/mark-as-read/${encodeURIComponent(notificationId)}`, options));
+}
+
+export function muteUser(userId: string) {
+  return apiRequest('/v1/report', {
+    method: 'POST',
+    body: JSON.stringify({
+      entity: 'user',
+      entity_id: userId,
+      muted: 1,
+      user_id: currentUserParam(),
+    }),
+  });
+}
+
+export function getUserPayments(page?: number) {
+  return list(withQuery('/v1/payment', withCurrentUser({ page })), normalizePayment);
 }

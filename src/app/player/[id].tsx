@@ -7,7 +7,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
-import { ApiMedia, getMedia } from '@/lib/api';
+import { ApiMedia, getMedia, saveMediaProgress } from '@/lib/api';
 
 export default function PlayerScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -43,6 +43,17 @@ export default function PlayerScreen() {
     const timer = setInterval(() => setCurrentTime(player.currentTime || 0), 500);
     return () => clearInterval(timer);
   }, [player]);
+
+  useEffect(() => {
+    if (!media?.id || !duration) return;
+
+    const timer = setInterval(() => {
+      const percentage = duration ? ((player.currentTime || 0) / duration) * 100 : 0;
+      saveMediaProgress(media.id, percentage).catch(() => undefined);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [duration, media?.id, player]);
 
   const flashIcon = (icon: 'play' | 'pause', autoHide = true) => {
     setCenterIcon(icon);

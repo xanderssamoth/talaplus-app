@@ -45,7 +45,7 @@ export default function TabsLayout() {
           name="explorer"
           options={{
             title: t('explore'),
-            tabBarIcon: ({ color }) => <Feather name="search" size={22} color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome6 name="briefcase" size={21} color={color} />,
           }}
         />
         <Tabs.Screen
