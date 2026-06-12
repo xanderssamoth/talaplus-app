@@ -7,8 +7,9 @@ import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
+import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
-import { addToWatchlist, ApiMedia, ApiMediaStats, ApiPost, createMediaComment, getMedia, getMediaChildren, getMediaComments, getMediaStats, getRelatedMedia, getUserWatchlist, likeComment, likeMedia, removeFromWatchlist, shareMediaAsPost, toggleSubscription } from '@/lib/api';
+import { addToWatchlist, ApiMedia, ApiMediaStats, ApiPost, createMediaComment, getMedia, getMediaChildren, getMediaComments, getMediaStats, getRelatedMedia, getUserWatchlist, isFollowingUser, likeComment, likeMedia, removeFromWatchlist, toggleSubscription } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 import { compactNumber, pluralize } from '@/utils/format';
 import { getAvatarSource } from '@/utils/user';
@@ -27,6 +28,7 @@ export default function MediaDetailsScreen() {
   const [liked, setLiked] = useState(false);
   const [watchlisted, setWatchlisted] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [shareVisible, setShareVisible] = useState(false);
   const [stats, setStats] = useState<ApiMediaStats>({ views: 0, plays: 0, likes: 0, liked: false });
 
   const user = getCurrentUser();
@@ -38,12 +40,13 @@ export default function MediaDetailsScreen() {
     setLoading(true);
     try {
       const nextMedia = await getMedia(params.id);
-      const [childrenResult, commentsResult, relatedResult, watchlistResult, statsResult] = await Promise.all([
+      const [childrenResult, commentsResult, relatedResult, watchlistResult, statsResult, followedResult] = await Promise.all([
         getMediaChildren(nextMedia.id).catch(() => ({ items: [] })),
         getMediaComments(nextMedia.id).catch(() => ({ items: [] })),
         getRelatedMedia(nextMedia.type ?? '', nextMedia.id).catch(() => ({ items: [] })),
         getUserWatchlist().catch(() => ({ items: [] })),
         getMediaStats(nextMedia.id).catch(() => ({ views: nextMedia.views ?? 0, plays: 0, likes: nextMedia.likes ?? 0, liked: Boolean(nextMedia.isLiked) })),
+        nextMedia.userId && nextMedia.userId !== user.id ? isFollowingUser(nextMedia.userId).catch(() => false) : Promise.resolve(false),
       ]);
       setMedia({ ...nextMedia, likes: statsResult.likes, views: statsResult.views });
       setStats(statsResult);
@@ -52,6 +55,7 @@ export default function MediaDetailsScreen() {
       setComments(commentsResult.items);
       setRelated(relatedResult.items.filter((item) => item.id !== nextMedia.id && item.belongsTo !== nextMedia.id));
       setWatchlisted(Boolean(nextMedia.isInWatchlist || watchlistResult.items.some((item) => item.id === nextMedia.id)));
+      setSubscribed(Boolean(followedResult));
     } catch {
       setMedia(null);
       setChildren([]);
@@ -94,16 +98,6 @@ export default function MediaDetailsScreen() {
       Alert.alert('Commentaire impossible', error instanceof Error ? error.message : 'La requ\u00eate a \u00e9chou\u00e9.');
     } finally {
       setSubmittingComment(false);
-    }
-  };
-
-  const shareMedia = async () => {
-    if (!media) return;
-    try {
-      await shareMediaAsPost(media);
-      Alert.alert('Partage envoy\u00e9', 'La vid\u00e9o a \u00e9t\u00e9 partag\u00e9e comme post.');
-    } catch (error) {
-      Alert.alert('Partage impossible', error instanceof Error ? error.message : 'La requ\u00eate a \u00e9chou\u00e9.');
     }
   };
 
@@ -193,7 +187,7 @@ export default function MediaDetailsScreen() {
             </View>
             {!isOwner && (
               <Pressable style={[styles.subscribeButton, subscribed && styles.subscribeButtonActive]} onPress={subscribe}>
-                <Text style={[styles.subscribeText, subscribed && styles.subscribeTextActive]}>{subscribed ? 'Abonne' : "S'abonner"}</Text>
+                <Text style={[styles.subscribeText, subscribed && styles.subscribeTextActive]}>{subscribed ? 'Abonné' : "S'abonner"}</Text>
               </Pressable>
             )}
           </View>
@@ -218,7 +212,7 @@ export default function MediaDetailsScreen() {
           <View style={styles.actions}>
             <ActionButton icon="heart" label="J'aime" active={liked} value={media.likes} onPress={toggleLike} />
             <ActionButton icon="message-square" label="Commenter" onPress={() => setCommentModal(true)} />
-            <ActionButton icon="share" label="Partager" onPress={shareMedia} />
+            <ActionButton icon="share" label="Partager" onPress={() => setShareVisible(true)} />
             <ActionButton icon={watchlisted ? 'check-circle' : 'plus-square'} label={watchlisted ? 'Ajoutée' : 'Ajouter'} active={watchlisted} onPress={toggleWatchlist} />
           </View>
 
@@ -249,6 +243,7 @@ export default function MediaDetailsScreen() {
           </View>
         </View>
       </Modal>
+      <ShareSheet visible={shareVisible} entity="media" entityId={media.id} onClose={() => setShareVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -258,6 +253,8 @@ function ActionButton({ icon, label, value, active, onPress }: { icon: keyof typ
     <Pressable style={styles.actionButton} onPress={onPress}>
       {icon === 'heart' ? (
         <FontAwesome name={active ? 'heart' : 'heart-o'} size={20} color={active ? colors.primary : colors.text} />
+      ) : icon === 'check-circle' ? (
+        <FontAwesome name="check-circle" size={20} color={colors.primary} />
       ) : (
         <Feather name={icon} size={20} color={active ? colors.primary : colors.text} />
       )}
@@ -327,7 +324,7 @@ function CommentCard({ comment, onLike }: { comment: ApiPost; onLike: () => void
         </View>
       </View>
       <Pressable style={styles.commentLike} onPress={onLike}>
-        <FontAwesome name={comment.liked ? 'heart' : 'heart-o'} size={16} color={comment.liked ? colors.danger : colors.muted} />
+        <FontAwesome name={comment.liked ? 'heart' : 'heart-o'} size={16} color={comment.liked ? colors.primary : colors.muted} />
         <Text style={styles.commentLikeText}>{comment.likes ?? 0}</Text>
       </Pressable>
     </View>

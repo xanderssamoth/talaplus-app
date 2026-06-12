@@ -125,7 +125,7 @@ function CommentRow({ comment }: { comment: ApiPost }) {
       <Text style={styles.commentText}>{comment.body}</Text>
       <PostMediaCarousel files={comment.files} compact />
       <Pressable style={styles.likeRow} onPress={toggle}>
-        <FontAwesome name={liked ? 'heart' : 'heart-o'} size={16} color={liked ? colors.danger : colors.muted} />
+        <FontAwesome name={liked ? 'heart' : 'heart-o'} size={16} color={liked ? colors.primary : colors.muted} />
         <Text style={styles.likeText}>{likes}</Text>
       </Pressable>
     </View>

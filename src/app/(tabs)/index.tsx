@@ -9,6 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import SectionTitle from '@/components/SectionTitle';
+import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiHashtag, ApiMedia, ApiPost, getHashtags, getNewsFeed, getPopularMedia, getRecentMedia } from '@/lib/api';
 
@@ -143,6 +144,7 @@ function SeeAllTile({ onPress }: { onPress: () => void }) {
 }
 
 function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost; menuOpen: boolean; onToggleMenu: () => void; onCloseMenu: () => void }) {
+  const [shareVisible, setShareVisible] = useState(false);
   const mediaFiles = post.files.length ? post.files : post.image ? [{ id: `${post.id}-image`, url: post.image, type: 'photo' }] : [];
 
   // Capitalization helper function
@@ -193,17 +195,22 @@ function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost
           <Text style={styles.postMeta}>{post.shares ?? 0}</Text>
         </View>
         <View style={styles.postMetaItem}>
-          <FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.danger : colors.muted} />
+          <FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.primary : colors.muted} />
           <Text style={[styles.postMeta, post.liked && styles.liked]}>{post.likes ?? 0}</Text>
         </View>
-        <Feather name="share" size={17} color={colors.muted} />
+        <Pressable onPress={() => setShareVisible(true)}>
+          <Feather name="share" size={17} color={colors.muted} />
+        </Pressable>
       </View>
       <View style={styles.postActions}>
         <Text style={styles.postMeta}>♡ {post.comments ?? 0}</Text>
         <Text style={styles.postMeta}>↻ {post.shares ?? 0}</Text>
         <Text style={[styles.postMeta, styles.liked]}>♥ {post.likes ?? 0}</Text>
-        <Feather name="share" size={17} color={colors.muted} />
+        <Pressable onPress={() => setShareVisible(true)}>
+          <Feather name="share" size={17} color={colors.muted} />
+        </Pressable>
       </View>
+      <ShareSheet visible={shareVisible} entity="post" entityId={post.id} onClose={() => setShareVisible(false)} />
     </View>
   );
 }
@@ -304,5 +311,5 @@ const styles = StyleSheet.create({
   postedAtRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 },
   postDateText: { color: colors.muted, fontSize: 12, fontWeight: '700' },
   postedAtText: { display: 'none' },
-  liked: { color: colors.danger },
+  liked: { color: colors.primary },
 });

@@ -8,6 +8,7 @@ import BrandLogo from '@/components/BrandLogo';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
+import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiPost, ApiProduct, getProduct, getProductComments } from '@/lib/api';
 
@@ -17,6 +18,7 @@ export default function ProductDetailsScreen() {
   const [product, setProduct] = useState<ApiProduct | null>(null);
   const [comments, setComments] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareVisible, setShareVisible] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -68,7 +70,12 @@ export default function ProductDetailsScreen() {
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
           <BrandLogo size="sm" />
-          <Feather name="shopping-cart" size={24} color={colors.text} />
+          <View style={styles.headerActions}>
+            <Pressable onPress={() => setShareVisible(true)}>
+              <Feather name="share-2" size={23} color={colors.text} />
+            </Pressable>
+            <Feather name="shopping-cart" size={24} color={colors.text} />
+          </View>
         </View>
 
         {product.image ? <Image source={{ uri: product.image }} style={styles.image} /> : <View style={styles.image} />}
@@ -110,6 +117,7 @@ export default function ProductDetailsScreen() {
           <Text style={styles.cartText}>Ajouter au panier</Text>
         </Pressable>
       </View>
+      <ShareSheet visible={shareVisible} entity="product" entityId={product.id} onClose={() => setShareVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -119,6 +127,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 120 },
   emptyWrap: { padding: 16 },
   header: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   image: { width: '100%', height: 320, borderRadius: 8, backgroundColor: colors.panel },
   title: { color: colors.text, fontSize: 31, fontWeight: '900', marginTop: 20 },
   category: { color: colors.muted, fontSize: 16, marginTop: 8 },

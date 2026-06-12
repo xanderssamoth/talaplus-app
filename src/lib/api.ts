@@ -101,6 +101,14 @@ export type ApiNotification = {
   time?: string;
 };
 
+export type ApiUserProfile = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string;
+  coverUrl: string;
+};
+
 export type ApiPayment = {
   id: string;
   title: string;
@@ -483,16 +491,136 @@ function productKind(product: Record<string, unknown> | null) {
   return pickString(product ?? {}, ['type']) === 'service' ? 'service' : 'produit';
 }
 
-function notificationImage(source: Record<string, unknown>, type: string) {
-  const fromUser = pickObject(source, ['from_user', 'fromUser', 'user']);
-  const toUser = pickObject(source, ['to_user', 'toUser']);
+function localizedProductKind(product: Record<string, unknown> | null, article = false) {
+  const kind = productKind(product);
+  const language = (i18n.language || 'fr').split('-')[0];
+
+  if (language === 'en') {
+    return kind === 'service' ? 'service' : 'product';
+  }
+
+  if (language === 'ln') {
+    return kind === 'service' ? 'service' : 'biloko';
+  }
+
+  if (!article) {
+    return kind;
+  }
+
+  return kind === 'service' ? 'un service' : 'un produit';
+}
+
+function notificationTarget(source: Record<string, unknown>) {
   const media = pickObject(source, ['media']);
   const product = pickObject(source, ['product']);
+  const comment = pickObject(source, ['comment']);
+  const mediaId = pickString(media ?? source, ['media_id', 'mediaId', 'id']);
+  const productId = pickString(product ?? source, ['product_id', 'productId', 'id']);
+  const commentId = pickString(comment ?? source, ['comment_id', 'commentId', 'id']);
+  const commentType = pickString(comment ?? source, ['type']);
+  const answeredFor = pickString(comment ?? source, ['answered_for', 'answeredFor']);
+
+  if (mediaId) {
+    return {
+      kind: 'media',
+      ownedFr: 'vidéo',
+      reportFr: 'une vidéo',
+      mentionFr: 'sa vidéo',
+      route: `/mediaDetails/${mediaId}`,
+    };
+  }
+
+  if (productId) {
+    const label = localizedProductKind(product);
+    const articleLabel = localizedProductKind(product, true);
+    return {
+      kind: 'product',
+      ownedFr: label,
+      reportFr: articleLabel,
+      mentionFr: productKind(product) === 'service' ? 'son service' : 'son produit',
+      route: `/productDetails/${productId}`,
+    };
+  }
+
+  if (commentId) {
+    const isComment = commentType === 'comment';
+    const postId = isComment && answeredFor ? answeredFor : commentId;
+    return {
+      kind: 'comment',
+      ownedFr: isComment ? 'commentaire' : 'post',
+      reportFr: isComment ? 'un commentaire' : 'un post',
+      mentionFr: isComment ? 'son commentaire' : 'son post',
+      route: `/posts/${postId}`,
+    };
+  }
+
+  return {
+    kind: 'unknown',
+    ownedFr: 'contenu',
+    reportFr: 'un contenu',
+    mentionFr: 'son contenu',
+    route: undefined,
+  };
+}
+
+function formatNotificationTime(value: string) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const now = new Date();
+  const language = (i18n.language || 'fr').split('-')[0];
+  const seconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+  const sameDay = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  const hhmm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  const ddmmyyyy = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+
+  if (sameDay) {
+    if (seconds >= 3600) {
+      const hours = Math.floor(seconds / 3600);
+      if (language === 'en') return `${hours} ${hours > 1 ? 'hours' : 'hour'} ago`;
+      if (language === 'ln') return `Eleki ngonga ${hours}`;
+      return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+    }
+
+    if (seconds >= 60) {
+      const minutes = Math.floor(seconds / 60);
+      if (language === 'en') return `${minutes} ${minutes > 1 ? 'minutes' : 'minute'} ago`;
+      if (language === 'ln') return `Eleki miniti ${minutes}`;
+      return `Il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+    }
+
+    if (language === 'en') return `${seconds} ${seconds > 1 ? 'seconds' : 'second'} ago`;
+    if (language === 'ln') return `Eleki segonde ${seconds}`;
+    return `Il y a ${seconds} seconde${seconds > 1 ? 's' : ''}`;
+  }
+
+  if (isYesterday) {
+    if (language === 'en') return `Yesterday at ${hhmm}`;
+    if (language === 'ln') return `Lobi na ${hhmm}`;
+    return `Hier à ${hhmm}`;
+  }
+
+  if (language === 'en') return `On ${ddmmyyyy} at ${hhmm}`;
+  if (language === 'ln') return `${ddmmyyyy} na ${hhmm}`;
+  return `Le ${ddmmyyyy} à ${hhmm}`;
+}
+
+function notificationImage(source: Record<string, unknown>, type: string) {
+  const fromUser = pickObject(source, ['from_user', 'fromUser', 'user']);
+  const media = pickObject(source, ['media']);
+  const product = pickObject(source, ['product']);
+  const comment = pickObject(source, ['comment']);
 
   if (type === 'welcome_new_user') return '';
-  if (type === 'media_created') return pickString(toUser ?? {}, ['avatar_url', 'avatar']);
+  if (type === 'media_created') return pickString(fromUser ?? {}, ['avatar_url', 'avatar']);
   if (type.startsWith('media_')) return pickImage(media ?? source);
-  if (type === 'post_sent' || type === 'comment_sent') return pickString(fromUser ?? {}, ['avatar_url', 'avatar']);
+  if (['post_sent', 'comment_sent', 'like_sent', 'gift_sent', 'new_follower', 'mention'].includes(type)) return pickString(fromUser ?? {}, ['avatar_url', 'avatar']);
+  if (type === 'report_sent') return pickImage(media ?? product ?? comment ?? source);
   if (type.startsWith('product_') || type === 'stock_empty') return pickImage(product ?? source);
   return pickImage(source);
 }
@@ -504,11 +632,17 @@ function notificationRoute(source: Record<string, unknown>, type: string) {
   const mediaId = pickString(media ?? source, ['media_id', 'mediaId', 'id']);
   const productId = pickString(product ?? source, ['product_id', 'productId', 'id']);
   const commentId = pickString(comment ?? source, ['comment_id', 'commentId', 'id']);
+  const fromUser = pickObject(source, ['from_user', 'fromUser']);
 
   if (type === 'welcome_new_user') return '/about';
+  if (type === 'new_follower') {
+    const fromUserId = pickString(fromUser ?? source, ['from_user_id', 'fromUserId', 'user_id', 'id']);
+    return fromUserId ? `/user/${fromUserId}` : undefined;
+  }
   if (type.startsWith('payment_')) return '/payments';
   if (type.startsWith('product_') || type === 'stock_empty') return productId ? `/productDetails/${productId}` : undefined;
   if (type === 'post_sent' || type === 'comment_sent') return commentId ? `/posts/${commentId}` : undefined;
+  if (['like_sent', 'gift_sent', 'report_sent', 'mention'].includes(type)) return notificationTarget(source).route;
   if (type.startsWith('media_')) return mediaId ? `/mediaDetails/${mediaId}` : undefined;
   return undefined;
 }
@@ -528,9 +662,11 @@ export function normalizeNotification(item: unknown): ApiNotification {
   const productName = pickLocalizedString(product ?? source, ['product_name', 'name', 'title'], productKind(product));
   const kind = productKind(product);
   const answeredKind = pickString(answered ?? {}, ['type']) === 'comment' ? 'commentaire' : 'post';
+  const target = notificationTarget(source);
   const language = (i18n.language || 'fr').split('-')[0];
   const productLabel = language === 'en' ? (kind === 'service' ? 'service' : 'product') : language === 'ln' ? (kind === 'service' ? 'service' : 'biloko') : kind;
   const answeredLabel = language === 'en' ? (answeredKind === 'commentaire' ? 'comment' : 'post') : language === 'ln' ? (answeredKind === 'commentaire' ? 'commentaire' : 'post') : answeredKind;
+  const targetLabel = language === 'en' ? (target.kind === 'media' ? 'video' : target.kind === 'product' ? productLabel : target.ownedFr === 'commentaire' ? 'comment' : 'post') : language === 'ln' ? target.ownedFr : target.ownedFr;
 
   const messages: Record<string, { text: string; strongText?: string; canMute?: boolean; icon?: string; iconColor?: string }> = {
     welcome_new_user: { text: language === 'en' ? `Welcome to TALA+ ${toName}` : language === 'ln' ? `Boyei malamu na TALA+ ${toName}` : `Bienvenue sur la plateforme TALA+ ${toName}`, strongText: toName },
@@ -540,6 +676,11 @@ export function normalizeNotification(item: unknown): ApiNotification {
     media_published: { text: language === 'en' ? `${fromName} published a new video` : language === 'ln' ? `${fromName} abimisi video ya sika` : `${fromName} a publi\u00e9 une nouvelle vid\u00e9o`, strongText: fromName, canMute: true },
     post_sent: { text: language === 'en' ? `${fromName} sent a new post` : language === 'ln' ? `${fromName} atindi post ya sika` : `${fromName} a envoy\u00e9 un nouveau post`, strongText: fromName, canMute: true },
     comment_sent: { text: language === 'en' ? `${fromName} commented on your ${answeredLabel}` : language === 'ln' ? `${fromName} akomi commentaire na ${answeredLabel} na yo` : `${fromName} a comment\u00e9 votre ${answeredLabel}`, strongText: fromName, canMute: true },
+    like_sent: { text: language === 'en' ? `${fromName} liked your ${targetLabel}` : language === 'ln' ? `${fromName} alingi ${targetLabel} na yo` : `${fromName} a aim\u00e9 votre ${targetLabel}`, strongText: fromName, canMute: true },
+    gift_sent: { text: language === 'en' ? `${fromName} sent a gift to your ${targetLabel}` : language === 'ln' ? `${fromName} atindeli ${targetLabel} na yo cadeau` : `${fromName} a envoy\u00e9 un cadeau \u00e0 votre ${targetLabel}`, strongText: fromName, canMute: true },
+    report_sent: { text: language === 'en' ? `${fromName} reported ${targetLabel}` : language === 'ln' ? `${fromName} asali signalement ya ${targetLabel}` : `${fromName} a signal\u00e9 ${target.reportFr}`, strongText: fromName, canMute: true },
+    new_follower: { text: language === 'en' ? `${fromName} followed your account` : language === 'ln' ? `${fromName} alandi compte na yo` : `${fromName} s'est abonn\u00e9 \u00e0 votre compte`, strongText: fromName, canMute: true },
+    mention: { text: language === 'en' ? `${fromName} mentioned you in their ${targetLabel}` : language === 'ln' ? `${fromName} atangi yo na ${targetLabel}` : `${fromName} vous a mentionn\u00e9 dans ${target.mentionFr}`, strongText: fromName, canMute: true },
     product_added: { text: language === 'en' ? `${fromName} sent a ${productLabel}` : language === 'ln' ? `${fromName} atindi ${productLabel}` : `${fromName} a envoy\u00e9 un ${productLabel}`, strongText: fromName },
     product_accepted: { text: language === 'en' ? `Your ${productLabel} ${productName} was accepted` : language === 'ln' ? `${productLabel} na yo ${productName} endimami` : `Votre ${productLabel} ${productName} a \u00e9t\u00e9 accept\u00e9`, strongText: productName },
     product_rejected: { text: language === 'en' ? `Your ${productLabel} ${productName} was rejected` : language === 'ln' ? `${productLabel} na yo ${productName} eboyami` : `Votre ${productLabel} ${productName} a \u00e9t\u00e9 refus\u00e9`, strongText: productName },
@@ -564,7 +705,7 @@ export function normalizeNotification(item: unknown): ApiNotification {
     canMute: Boolean(message.canMute),
     fromUserId: pickString(fromUser ?? source, ['from_user_id', 'fromUserId', 'user_id', 'id']),
     toUserId: pickString(toUser ?? source, ['to_user_id', 'toUserId', 'user_id', 'id']),
-    time: pickString(source, ['created_at_explicit', 'created_at', 'createdAt']),
+    time: formatNotificationTime(pickString(source, ['created_at', 'createdAt', 'created_at_explicit'])),
   };
 }
 
@@ -577,6 +718,18 @@ function normalizePayment(item: unknown): ApiPayment {
     currency: pickString(source, ['currency', 'devise'], 'USD'),
     status: pickString(source, ['status', 'state'], 'pending'),
     time: pickString(source, ['created_at_explicit', 'created_at', 'createdAt']),
+  };
+}
+
+function normalizeUserProfile(item: unknown): ApiUserProfile {
+  const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+
+  return {
+    id: pickString(source, ['id', 'uuid']),
+    name: userFullName(source),
+    username: pickString(source, ['username', 'email']),
+    avatarUrl: pickString(source, ['avatar_url', 'avatar']),
+    coverUrl: pickString(source, ['cover_url', 'cover']),
   };
 }
 
@@ -830,6 +983,33 @@ export function shareMediaAsPost(media: ApiMedia) {
   });
 }
 
+export function shareMedia(mediaId: string) {
+  return apiRequest(`/v1/media/${encodeURIComponent(mediaId)}/share`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: currentUserParam() }),
+  });
+}
+
+export function sharePost(postId: string) {
+  return apiRequest(`/v1/comment/${encodeURIComponent(postId)}/share`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: currentUserParam() }),
+  });
+}
+
+export function shareProduct(productId: string) {
+  return apiRequest(`/v1/product/${encodeURIComponent(productId)}/share`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: currentUserParam() }),
+  });
+}
+
+export function shareEntity(entity: 'media' | 'post' | 'product', entityId: string) {
+  if (entity === 'post') return sharePost(entityId);
+  if (entity === 'product') return shareProduct(entityId);
+  return shareMedia(entityId);
+}
+
 export function likeComment(commentId: string, action: 'add' | 'remove' = 'add') {
   const user = getCurrentUser();
   return apiRequest(`/v1/comment/${encodeURIComponent(commentId)}/like`, {
@@ -854,10 +1034,34 @@ export function removeFromWatchlist(mediaId: string) {
 }
 
 export function toggleSubscription(userId: string, action: 'add' | 'remove' = 'add') {
-  const user = getCurrentUser();
-  return apiRequest(`/v1/user/${encodeURIComponent(user.id)}/subscription/${encodeURIComponent(userId)}`, {
-    method: action === 'add' ? 'POST' : 'DELETE',
+  return action === 'add' ? followUser(userId) : unfollowUser(userId);
+}
+
+export async function isFollowingUser(userId: string) {
+  const response = await apiRequest<{ is_follower?: boolean }>(withQuery('/v1/subscription/is-follower', {
+    user_id: userId,
+    follower_id: currentUserParam(),
+  }));
+
+  return Boolean(response.data?.is_follower);
+}
+
+export function followUser(userId: string) {
+  return apiRequest('/v1/subscription', {
+    method: 'POST',
+    body: JSON.stringify({
+      user_id: userId,
+      follower_id: currentUserParam(),
+      granted: true,
+    }),
   });
+}
+
+export function unfollowUser(userId: string) {
+  return apiRequest(withQuery('/v1/subscription/unfollow', {
+    user_id: userId,
+    follower_id: currentUserParam(),
+  }), { method: 'DELETE' });
 }
 
 export function saveMediaProgress(mediaId: string, percentage: number) {
@@ -890,11 +1094,12 @@ export async function getUnreadNotificationsCount() {
   const response = await apiRequest<unknown>(withQuery(`/v1/notification/user/${encodeURIComponent(userId)}`, { unread: 1 }))
     .catch(() => apiRequest<unknown>(withQuery('/v1/notification/user-notifications', { to_user_id: userId, user_id: userId, unread: 1 })))
     .catch(() => apiRequest<unknown>(withQuery('/v1/notification', { to_user_id: userId, user_id: userId, unread: 1 })));
+  const rawItems = asArray(response.data);
   const unread = asArray(response.data)
     .map(normalizeNotification)
     .filter((item) => (!item.toUserId || item.toUserId === userId) && item.unread);
 
-  return response.count ?? unread.length;
+  return rawItems.length && unread.length !== rawItems.length ? unread.length : response.count ?? unread.length;
 }
 
 export function markNotificationAsRead(notificationId: string) {
@@ -922,4 +1127,14 @@ export function muteUser(userId: string) {
 
 export function getUserPayments(page?: number) {
   return list(withQuery('/v1/payment', withCurrentUser({ page })), normalizePayment);
+}
+
+export async function getUserProfile(userId: string) {
+  const response = await apiRequest<unknown>(`/v1/user/${encodeURIComponent(userId)}`);
+  const data = Array.isArray(response.data) ? response.data[0] : response.data;
+  return normalizeUserProfile(data);
+}
+
+export function getUserConnections(page?: number) {
+  return list(withQuery(`/v1/subscription/user/${encodeURIComponent(currentUserParam())}/connections`, { page }), normalizeUserProfile);
 }

@@ -6,6 +6,7 @@ import { Feather, FontAwesome } from '@expo/vector-icons';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
+import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiPost, getPost } from '@/lib/api';
 
@@ -13,6 +14,7 @@ export default function PostDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [post, setPost] = useState<ApiPost | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shareVisible, setShareVisible] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -44,9 +46,11 @@ export default function PostDetailsScreen() {
         <View style={styles.actions}>
           <View style={styles.action}><Feather name="message-circle" size={17} color={colors.muted} /><Text style={styles.meta}>{post.comments ?? 0}</Text></View>
           <View style={styles.action}><Feather name="repeat" size={17} color={colors.muted} /><Text style={styles.meta}>{post.shares ?? 0}</Text></View>
-          <View style={styles.action}><FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.danger : colors.muted} /><Text style={[styles.meta, post.liked && styles.liked]}>{post.likes ?? 0}</Text></View>
+          <View style={styles.action}><FontAwesome name={post.liked ? 'heart' : 'heart-o'} size={17} color={post.liked ? colors.primary : colors.muted} /><Text style={[styles.meta, post.liked && styles.liked]}>{post.likes ?? 0}</Text></View>
+          <Pressable style={styles.action} onPress={() => setShareVisible(true)}><Feather name="share" size={17} color={colors.muted} /></Pressable>
         </View>
       </View>
+      <ShareSheet visible={shareVisible} entity="post" entityId={post.id} onClose={() => setShareVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -66,5 +70,5 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginTop: 14 },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   meta: { color: colors.muted, fontWeight: '800' },
-  liked: { color: colors.danger },
+  liked: { color: colors.primary },
 });
