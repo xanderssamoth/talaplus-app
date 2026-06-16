@@ -1,6 +1,6 @@
 import i18n from '@/i18n';
 
-export const API_BASE_URL = 'https://tempor.groupsynapse.org/api';
+export const API_BASE_URL = 'https://admin.talaplus.tv/api';
 
 type ApiResponse<T> = {
   success?: boolean;
