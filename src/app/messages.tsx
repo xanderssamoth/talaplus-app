@@ -3,26 +3,28 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import SearchOverlay from '@/components/SearchOverlay';
 import { colors } from '@/constants/theme';
 
-const contacts = ['Nouveau', 'Grace', 'Junior', 'Anina', 'Mike'];
+const contacts = ['new', 'Grace', 'Junior', 'Anina', 'Mike'];
 const messages = [
-  ['Grace M.', 'On se voit demain ?', '10:30', '2'],
-  ['Junior B.', 'Merci beaucoup !', '9:15', '1'],
-  ['Amina K.', 'Je t’envoie ça', 'Hier', ''],
-  ['Mike L.', 'À plus tard', 'Hier', ''],
-  ['TALA+ Team', 'Bienvenue sur TALA+', 'Hier', ''],
+  ['Grace M.', 'demoSeeTomorrow', '10:30', '2'],
+  ['Junior B.', 'demoThanks', '9:15', '1'],
+  ['Amina K.', 'demoSendingThis', 'yesterday', ''],
+  ['Mike L.', 'demoSeeYouLater', 'yesterday', ''],
+  ['TALA+ Team', 'demoWelcome', 'yesterday', ''],
 ];
 
 export default function MessagesScreen() {
+  const { t } = useTranslation();
   const [searchVisible, setSearchVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.title}>{t('messages')}</Text>
         <Pressable onPress={() => setSearchVisible(true)}>
           <Feather name="search" size={21} color={colors.text} />
         </Pressable>
@@ -35,22 +37,22 @@ export default function MessagesScreen() {
               <View style={[styles.contactAvatar, index === 0 && styles.addAvatar]}>
                 {index === 0 ? <Feather name="plus" size={24} color={colors.text} /> : <Text style={styles.initials}>{contact.charAt(0)}</Text>}
               </View>
-              <Text style={styles.contactName}>{contact}</Text>
+              <Text style={styles.contactName}>{index === 0 ? t(contact) : contact}</Text>
             </View>
           ))}
         </ScrollView>
 
-        {messages.map(([name, preview, time, count], index) => (
+        {messages.map(([name, previewKey, timeKey, count]) => (
           <View key={name} style={styles.message}>
             <View style={styles.avatar}>
               <Text style={styles.initials}>{name.charAt(0)}</Text>
             </View>
             <View style={styles.messageBody}>
               <Text style={styles.messageName}>{name}</Text>
-              <Text style={styles.preview}>{preview}</Text>
+              <Text style={styles.preview}>{t(previewKey)}</Text>
             </View>
             <View style={styles.meta}>
-              <Text style={styles.time}>{time}</Text>
+              <Text style={styles.time}>{timeKey === 'yesterday' ? t('yesterday') : timeKey}</Text>
               {!!count && <Text style={styles.count}>{count}</Text>}
             </View>
           </View>

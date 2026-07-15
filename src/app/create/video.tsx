@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiCategory, ApiMedia, createMedia, getCategoriesForType, getUserMedia } from '@/lib/api';
@@ -16,18 +17,31 @@ type PickedAsset = {
   mimeType: string;
 };
 
+type ThumbnailModule = {
+  getThumbnailAsync?: (uri: string, options?: { time?: number }) => Promise<{ uri: string }>;
+};
+
+const videoThumbnails: ThumbnailModule | null = (() => {
+  try {
+    return require('expo-video-thumbnails') as ThumbnailModule;
+  } catch {
+    return null;
+  }
+})();
+
 const mediaTypes = [
-  { label: 'Films & Series', value: 'film_series', icon: 'clapperboard', color: '#2677D7' },
-  { label: 'Com\u00e9die', value: 'comedy', icon: 'face-laugh-beam', color: '#F36A25' },
-  { label: 'Musique', value: 'music', icon: 'music', color: '#7B2FF7' },
-  { label: 'Education', value: 'education', icon: 'graduation-cap', color: '#38A35A' },
-  { label: 'Business', value: 'business', icon: 'briefcase', color: '#F6A128' },
-  { label: 'M\u00e9tiers & Bricolage', value: 'crafts_diy', icon: 'screwdriver-wrench', color: '#287AC0' },
-  { label: 'Sport Simul\u00e9', value: 'sports', icon: 'futbol', color: '#37A33B' },
-  { label: 'Documentaires', value: 'documentary', icon: 'file-video', color: '#127B8F' },
+  { labelKey: 'filmsAndSeries', value: 'film_series', icon: 'clapperboard', color: '#2677D7' },
+  { labelKey: 'comedy', value: 'comedy', icon: 'face-laugh-beam', color: '#F36A25' },
+  { labelKey: 'music', value: 'music', icon: 'music', color: '#7B2FF7' },
+  { labelKey: 'education', value: 'education', icon: 'graduation-cap', color: '#38A35A' },
+  { labelKey: 'business', value: 'business', icon: 'briefcase', color: '#F6A128' },
+  { labelKey: 'crafts', value: 'crafts_diy', icon: 'screwdriver-wrench', color: '#287AC0' },
+  { labelKey: 'simulatedSport', value: 'sports', icon: 'futbol', color: '#37A33B' },
+  { labelKey: 'documentaries', value: 'documentary', icon: 'file-video', color: '#127B8F' },
 ] as const;
 
 export default function CreateVideoScreen() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [video, setVideo] = useState<PickedAsset | null>(null);
   const [cover, setCover] = useState<PickedAsset | null>(null);
@@ -40,11 +54,20 @@ export default function CreateVideoScreen() {
   const [forYouth, setForYouth] = useState(false);
   const [belongsTo, setBelongsTo] = useState('');
   const [userMedia, setUserMedia] = useState<ApiMedia[]>([]);
+  const [userMediaPage, setUserMediaPage] = useState(1);
+  const [userMediaLastPage, setUserMediaLastPage] = useState(1);
+  const [userMediaLoading, setUserMediaLoading] = useState(false);
+  const [parentModalVisible, setParentModalVisible] = useState(false);
   const [isAuthor, setIsAuthor] = useState(true);
   const [authorName, setAuthorName] = useState('');
   const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryLastPage, setCategoryLastPage] = useState(1);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [generatedCover, setGeneratedCover] = useState(false);
+  const [generatingCover, setGeneratingCover] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const selectedType = useMemo(() => mediaTypes.find((item) => item.value === type) ?? mediaTypes[0], [type]);
@@ -56,27 +79,86 @@ export default function CreateVideoScreen() {
 
   useEffect(() => {
     if (step === 4) {
-      setCategoriesLoading(true);
-      getCategoriesForType(type).then(({ items }) => setCategories(items)).catch(() => setCategories([])).finally(() => setCategoriesLoading(false));
+      loadCategories(1, true);
     }
   }, [step, type]);
 
   useEffect(() => {
     const user = getCurrentUser();
     if (step === 3 && user.id) {
-      getUserMedia(user.id).then(({ items }) => setUserMedia(items)).catch(() => setUserMedia([]));
+      loadUserMedia(1, true);
     }
-  }, [step]);
+  }, [step, type]);
 
   useEffect(() => {
     if (video) {
       previewPlayer.loop = true;
       previewPlayer.muted = true;
       previewPlayer.play();
+      if (!cover) {
+        generateCoverFromVideo(video);
+      }
     } else {
       previewPlayer.pause();
     }
   }, [previewPlayer, video]);
+
+  const generateCoverFromVideo = async (asset: PickedAsset) => {
+    if (!videoThumbnails?.getThumbnailAsync) {
+      return null;
+    }
+
+    try {
+      setGeneratingCover(true);
+      const result = await videoThumbnails.getThumbnailAsync(asset.uri, { time: 3000 });
+      const nextCover = {
+        uri: result.uri,
+        name: `talaplus-cover-${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+      };
+      setCover(nextCover);
+      setGeneratedCover(true);
+      return nextCover;
+    } catch {
+      return null;
+    } finally {
+      setGeneratingCover(false);
+    }
+  };
+
+  const loadUserMedia = (nextPage: number, reset = false) => {
+    const user = getCurrentUser();
+    if (!user.id || userMediaLoading || (!reset && nextPage > userMediaLastPage)) return;
+
+    setUserMediaLoading(true);
+    getUserMedia(user.id, nextPage, type)
+      .then((result) => {
+        const typedItems = result.items.filter((item) => !item.type || item.type === type);
+        setUserMedia((current) => reset ? typedItems : [...current, ...typedItems]);
+        setUserMediaPage(nextPage);
+        setUserMediaLastPage(result.lastPage);
+      })
+      .catch(() => {
+        if (reset) setUserMedia([]);
+      })
+      .finally(() => setUserMediaLoading(false));
+  };
+
+  const loadCategories = (nextPage: number, reset = false) => {
+    if (categoriesLoading || (!reset && nextPage > categoryLastPage)) return;
+
+    setCategoriesLoading(true);
+    getCategoriesForType(type, nextPage)
+      .then((result) => {
+        setCategories((current) => reset ? result.items : [...current, ...result.items]);
+        setCategoryPage(nextPage);
+        setCategoryLastPage(result.lastPage);
+      })
+      .catch(() => {
+        if (reset) setCategories([]);
+      })
+      .finally(() => setCategoriesLoading(false));
+  };
 
   const pickVideo = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -87,6 +169,8 @@ export default function CreateVideoScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
+      setCover(null);
+      setGeneratedCover(false);
       setVideo({
         uri: asset.uri,
         name: asset.name ?? `talaplus-video-${Date.now()}.mp4`,
@@ -110,6 +194,7 @@ export default function CreateVideoScreen() {
         name: asset.name ?? `talaplus-cover-${Date.now()}.${extension === 'png' ? 'png' : 'jpg'}`,
         mimeType: asset.mimeType ?? (extension === 'png' ? 'image/png' : 'image/jpeg'),
       });
+      setGeneratedCover(false);
     }
   };
 
@@ -132,12 +217,12 @@ export default function CreateVideoScreen() {
 
   const goNext = () => {
     if (step === 1 && !video) {
-      Alert.alert('Vid\u00e9o requise', 'Choisis une vid\u00e9o depuis ton appareil.');
+      Alert.alert(t('requiredVideoTitle'), t('requiredVideoBody'));
       return;
     }
 
-    if (step === 3 && (!cover || !title.trim() || !description.trim() || (!isAuthor && !authorName.trim()))) {
-      Alert.alert('Informations incompl\u00e8tes', 'Ajoute la couverture, le titre, la description et les informations auteur.');
+    if (step === 3 && (!title.trim() || !description.trim() || (!isAuthor && !authorName.trim()))) {
+      Alert.alert(t('incompleteInfoTitle'), t('incompleteVideoInfoBody'));
       return;
     }
 
@@ -145,10 +230,12 @@ export default function CreateVideoScreen() {
   };
 
   const submit = async () => {
-    if (!video || !cover) {
-      Alert.alert('Informations incompl\u00e8tes', 'Choisis la vid\u00e9o et la couverture.');
+    if (!video) {
+      Alert.alert(t('incompleteInfoTitle'), t('requiredVideoBody'));
       return;
     }
+
+    const coverToUpload = cover ?? await generateCoverFromVideo(video);
 
     const form = new FormData();
     form.append('type', type);
@@ -171,7 +258,9 @@ export default function CreateVideoScreen() {
       form.append('categories[]', id);
     });
     form.append('media_file', { uri: video.uri, name: video.name, type: video.mimeType } as unknown as Blob);
-    form.append('cover_file', { uri: cover.uri, name: cover.name, type: cover.mimeType } as unknown as Blob);
+    if (coverToUpload) {
+      form.append('cover_file', { uri: coverToUpload.uri, name: coverToUpload.name, type: coverToUpload.mimeType } as unknown as Blob);
+    }
 
     try {
       setSubmitting(true);
@@ -195,15 +284,15 @@ export default function CreateVideoScreen() {
         },
         files: {
           media_file: video,
-          cover_file: cover,
+          cover_file: coverToUpload,
         },
       });
       const response = await createMedia(form);
       console.log('[create-video] response', response);
-      Alert.alert('Vid\u00e9o publi\u00e9e', 'Votre vid\u00e9o a \u00e9t\u00e9 envoy\u00e9e au serveur.', [{ text: 'OK', onPress: () => router.back() }]);
+      Alert.alert(t('videoPublished'), t('videoPublishedBody'), [{ text: t('ok'), onPress: () => router.back() }]);
     } catch (error) {
       console.log('[create-video] error', error);
-      Alert.alert('Publication impossible', error instanceof Error ? error.message : 'La publication a \u00e9chou\u00e9.');
+      Alert.alert(t('publicationImpossible'), error instanceof Error ? error.message : t('publicationFallbackError'));
     } finally {
       setSubmitting(false);
     }
@@ -216,8 +305,8 @@ export default function CreateVideoScreen() {
           <Feather name="arrow-left" size={24} color={colors.text} />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Publier une vid\u00e9o</Text>
-          <Text style={styles.stepText}>{step}. {stepTitles[step]}</Text>
+          <Text style={styles.headerTitle}>{t('publishVideo')}</Text>
+          <Text style={styles.stepText}>{step}. {t(stepTitleKeys[step])}</Text>
         </View>
         <View style={{ width: 24 }} />
       </View>
@@ -225,7 +314,7 @@ export default function CreateVideoScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {step === 1 && (
           <View style={styles.stepPanel}>
-            <Text style={styles.panelTitle}>S\u00e9lectionner une vid\u00e9o</Text>
+            <Text style={styles.panelTitle}>{t('selectVideo')}</Text>
             <Pressable style={styles.mediaPicker} onPress={pickVideo}>
               {video ? (
                 <>
@@ -242,16 +331,16 @@ export default function CreateVideoScreen() {
                   <View style={styles.videoPreviewOverlay}>
                     <View style={styles.videoPreviewBadge}>
                       <FontAwesome name="play" size={14} color={colors.text} />
-                      <Text style={styles.videoPreviewBadgeText}>Aper\u00e7u vid\u00e9o</Text>
+                      <Text style={styles.videoPreviewBadgeText}>{t('videoPreview')}</Text>
                     </View>
-                    <Text style={styles.changeVideoText}>Toucher pour changer la vid\u00e9o</Text>
+                    <Text style={styles.changeVideoText}>{t('tapToChangeVideo')}</Text>
                   </View>
                 </>
               ) : (
                 <>
                   <FontAwesome6 name="clapperboard" size={42} color={colors.primary} />
-                  <Text style={styles.pickerTitle}>Choisir une vid\u00e9o</Text>
-                  <Text style={styles.pickerHint}>Depuis votre appareil</Text>
+                  <Text style={styles.pickerTitle}>{t('chooseVideo')}</Text>
+                  <Text style={styles.pickerHint}>{t('fromYourDevice')}</Text>
                 </>
               )}
             </Pressable>
@@ -260,14 +349,14 @@ export default function CreateVideoScreen() {
 
         {step === 2 && (
           <View style={styles.stepPanel}>
-            <Text style={styles.panelTitle}>Choisir une chaine</Text>
+            <Text style={styles.panelTitle}>{t('chooseChannel')}</Text>
             <View style={styles.typeGrid}>
               {mediaTypes.map((item) => {
                 const active = item.value === type;
                 return (
                   <Pressable key={item.value} style={[styles.typeCard, { backgroundColor: item.color }, active && styles.typeCardActive]} onPress={() => setType(item.value)}>
                     <FontAwesome6 name={item.icon as keyof typeof FontAwesome6.glyphMap} size={28} color={colors.text} />
-                    <Text style={styles.typeLabel}>{item.label}</Text>
+                    <Text style={styles.typeLabel}>{t(item.labelKey)}</Text>
                     {active && <Feather name="check-circle" size={18} color={colors.text} style={styles.typeCheck} />}
                   </Pressable>
                 );
@@ -278,47 +367,51 @@ export default function CreateVideoScreen() {
 
         {step === 3 && (
           <View style={styles.stepPanel}>
-            <Text style={styles.panelTitle}>Informations de la vid\u00e9o</Text>
+            <Text style={styles.panelTitle}>{t('videoInfo')}</Text>
             <Pressable style={styles.coverPicker} onPress={pickCover}>
               {cover ? <Image source={{ uri: cover.uri }} style={styles.coverImage} /> : <FontAwesome6 name="image" size={34} color={colors.primary} />}
-              <Text style={styles.coverText}>{cover ? 'Changer la couverture' : 'Choisir une photo PNG ou JPG'}</Text>
+              <Text style={styles.coverText}>{cover ? t('changeCover') : t('chooseCover')}</Text>
             </Pressable>
-            <TextInput value={title} onChangeText={setTitle} placeholder="Titre de la vid\u00e9o" placeholderTextColor={colors.muted} style={styles.input} />
-            <TextInput value={description} onChangeText={setDescription} placeholder="Description" placeholderTextColor={colors.muted} style={[styles.input, styles.textarea]} multiline />
-            <TextInput value={durationText} onChangeText={updateDuration} placeholder="Longueur de la vid\u00e9o (HH:MM:SS)" placeholderTextColor={colors.muted} keyboardType="number-pad" style={styles.input} />
+            <Text style={styles.helper}>{generatingCover ? t('generatingCover') : generatedCover ? t('generatedCover') : t('coverOptionalHint')}</Text>
+            <TextInput value={title} onChangeText={setTitle} placeholder={t('videoTitle')} placeholderTextColor={colors.muted} style={styles.input} />
+            <TextInput value={description} onChangeText={setDescription} placeholder={t('description')} placeholderTextColor={colors.muted} style={[styles.input, styles.textarea]} multiline />
+            <TextInput value={durationText} onChangeText={updateDuration} placeholder={t('videoLength')} placeholderTextColor={colors.muted} keyboardType="number-pad" style={styles.input} />
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Vid\u00e9o premium</Text>
+              <Text style={styles.switchLabel}>{t('premiumVideo')}</Text>
               <Switch value={premium} onValueChange={setPremium} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.primary }} />
             </View>
-            {premium && <TextInput value={price} onChangeText={setPrice} placeholder="Prix" placeholderTextColor={colors.muted} keyboardType="numeric" style={styles.input} />}
+            {premium && <TextInput value={price} onChangeText={setPrice} placeholder={t('price')} placeholderTextColor={colors.muted} keyboardType="numeric" style={styles.input} />}
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Pour enfant</Text>
+              <Text style={styles.switchLabel}>{t('forKids')}</Text>
               <Switch value={forYouth} onValueChange={setForYouth} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.primary }} />
             </View>
-            <Text style={styles.dropdownLabel}>Appartient a</Text>
+            <Text style={styles.dropdownLabel}>{t('belongsTo')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.parentList}>
               <Pressable style={[styles.parentChip, !belongsTo && styles.parentChipActive]} onPress={() => setBelongsTo('')}>
-                <Text style={styles.parentChipText}>Aucun</Text>
+                <Text style={styles.parentChipText}>{t('none')}</Text>
               </Pressable>
-              {userMedia.map((item) => (
+              {userMedia.slice(0, 5).map((item) => (
                 <Pressable key={item.id} style={[styles.parentChip, belongsTo === item.id && styles.parentChipActive]} onPress={() => setBelongsTo(item.id)}>
                   <Text style={styles.parentChipText} numberOfLines={1}>{item.title}</Text>
                 </Pressable>
               ))}
+              <Pressable style={styles.parentChip} onPress={() => setParentModalVisible(true)}>
+                <Text style={styles.parentChipText}>{t('viewAll')}</Text>
+              </Pressable>
             </ScrollView>
             <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Je suis l auteur</Text>
+              <Text style={styles.switchLabel}>{t('iAmAuthor')}</Text>
               <Switch value={isAuthor} onValueChange={setIsAuthor} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.primary }} />
             </View>
-            {!isAuthor && <TextInput value={authorName} onChangeText={setAuthorName} placeholder="Nom complet de l'auteur" placeholderTextColor={colors.muted} style={styles.input} />}
+            {!isAuthor && <TextInput value={authorName} onChangeText={setAuthorName} placeholder={t('authorFullName')} placeholderTextColor={colors.muted} style={styles.input} />}
           </View>
         )}
 
         {step === 4 && (
           <View style={styles.stepPanel}>
-            <Text style={styles.panelTitle}>Cat\u00e9gories</Text>
-            <Text style={styles.helper}>Selectionnez une ou plusieurs categories</Text>
-            {categoriesLoading ? <LoadingState compact /> : categories.map((category) => {
+            <Text style={styles.panelTitle}>{t('categories')}</Text>
+            <Text style={styles.helper}>{t('selectOneOrMoreCategories')}</Text>
+            {categoriesLoading && !categories.length ? <LoadingState compact /> : categories.slice(0, 6).map((category) => {
               const active = selectedCategories.includes(category.id);
               return (
                 <Pressable key={category.id} style={styles.categoryRow} onPress={() => toggleCategory(category.id)}>
@@ -328,21 +421,24 @@ export default function CreateVideoScreen() {
                 </Pressable>
               );
             })}
+            <Pressable style={styles.inlineMoreButton} onPress={() => setCategoryModalVisible(true)}>
+              <Text style={styles.inlineMoreText}>{t('viewAll')}</Text>
+            </Pressable>
           </View>
         )}
 
         {step === 5 && (
           <View style={styles.stepPanel}>
-            <Text style={styles.panelTitle}>Aper\u00e7u de votre vid\u00e9o</Text>
+            <Text style={styles.panelTitle}>{t('videoPreviewTitle')}</Text>
             <View style={styles.previewCard}>
               {cover && <Image source={{ uri: cover.uri }} style={styles.previewImage} />}
               <View style={styles.playOverlay}>
                 <FontAwesome name="play" size={30} color={colors.text} />
               </View>
             </View>
-            <PreviewLine label="Chaine" value={selectedType.label} />
-            <PreviewLine label="Titre" value={title} />
-            <PreviewLine label="Description" value={description} />
+            <PreviewLine label={t('channels')} value={t(selectedType.labelKey)} />
+            <PreviewLine label={t('title')} value={title} />
+            <PreviewLine label={t('description')} value={description} />
             <View style={styles.chips}>
               {selectedCategories.map((id) => {
                 const category = categories.find((item) => item.id === id);
@@ -353,19 +449,75 @@ export default function CreateVideoScreen() {
         )}
 
         <Pressable style={[styles.button, nextDisabled && styles.buttonDisabled]} onPress={step === 5 ? submit : goNext} disabled={nextDisabled}>
-          <Text style={[styles.buttonText, nextDisabled && styles.buttonTextDisabled]}>{step === 5 ? 'Publier la vid\u00e9o' : `Suivant${step === 1 && video ? ' (1)' : ''}`}</Text>
+          <Text style={[styles.buttonText, nextDisabled && styles.buttonTextDisabled]}>{step === 5 ? t('publishVideoButton') : step === 1 && video ? t('nextWithVideo') : t('next')}</Text>
         </Pressable>
       </ScrollView>
+
+      <Modal transparent visible={parentModalVisible} animationType="slide" onRequestClose={() => setParentModalVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('chooseParentVideo')}</Text>
+              <Pressable onPress={() => setParentModalVisible(false)}><Feather name="x" size={22} color={colors.text} /></Pressable>
+            </View>
+            <FlatList
+              data={userMedia}
+              keyExtractor={(item) => item.id}
+              onEndReached={() => loadUserMedia(userMediaPage + 1)}
+              onEndReachedThreshold={0.4}
+              ListFooterComponent={userMediaLoading ? <LoadingState compact /> : null}
+              renderItem={({ item }) => (
+                <Pressable style={[styles.modalRow, belongsTo === item.id && styles.modalRowActive]} onPress={() => { setBelongsTo(item.id); setParentModalVisible(false); }}>
+                  {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.modalThumb} /> : <View style={styles.modalThumb} />}
+                  <View style={styles.modalRowBody}>
+                    <Text style={styles.modalRowTitle} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.modalRowMeta}>{t(selectedType.labelKey)}</Text>
+                  </View>
+                  <Feather name={belongsTo === item.id ? 'check-circle' : 'circle'} size={20} color={belongsTo === item.id ? colors.primary : colors.muted} />
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal transparent visible={categoryModalVisible} animationType="slide" onRequestClose={() => setCategoryModalVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('seeAllCategories')}</Text>
+              <Pressable onPress={() => setCategoryModalVisible(false)}><Feather name="x" size={22} color={colors.text} /></Pressable>
+            </View>
+            <FlatList
+              data={categories}
+              keyExtractor={(item) => item.id}
+              onEndReached={() => loadCategories(categoryPage + 1)}
+              onEndReachedThreshold={0.4}
+              ListFooterComponent={categoriesLoading ? <LoadingState compact /> : null}
+              renderItem={({ item }) => {
+                const active = selectedCategories.includes(item.id);
+                return (
+                  <Pressable style={styles.modalRow} onPress={() => toggleCategory(item.id)}>
+                    <FontAwesome6 name={item.icon as keyof typeof FontAwesome6.glyphMap} size={18} color={item.color} />
+                    <Text style={styles.modalRowTitle}>{item.name}</Text>
+                    <Feather name={active ? 'check-square' : 'square'} size={21} color={active ? colors.primary : colors.muted} />
+                  </Pressable>
+                );
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-const stepTitles: Record<number, string> = {
-  1: 'Choisir une vid\u00e9o',
-  2: 'Choisir une chaine',
-  3: 'Informations de la vid\u00e9o',
-  4: 'Choisir les categories',
-  5: 'Aper\u00e7u et publication',
+const stepTitleKeys: Record<number, string> = {
+  1: 'chooseVideo',
+  2: 'chooseChannel',
+  3: 'videoInfo',
+  4: 'chooseCategoriesStep',
+  5: 'previewAndPublish',
 };
 
 function PreviewLine({ label, value }: { label: string; value: string }) {
@@ -415,6 +567,8 @@ const styles = StyleSheet.create({
   parentChipText: { color: colors.text, fontWeight: '800' },
   categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: colors.border },
   categoryName: { flex: 1, color: colors.text, fontWeight: '700' },
+  inlineMoreButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 12, marginTop: 10, backgroundColor: colors.panelLight, borderWidth: 1, borderColor: colors.border },
+  inlineMoreText: { color: colors.primary, fontWeight: '900' },
   previewCard: { height: 210, borderRadius: 8, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelLight, marginBottom: 12 },
   previewImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   playOverlay: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.54)' },
@@ -427,4 +581,14 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
   buttonText: { color: colors.text, fontWeight: '900' },
   buttonTextDisabled: { color: colors.muted },
+  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.72)' },
+  modalSheet: { maxHeight: '78%', borderTopLeftRadius: 8, borderTopRightRadius: 8, padding: 16, backgroundColor: colors.background, borderTopWidth: 1, borderColor: colors.border },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  modalTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  modalRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
+  modalRowActive: { backgroundColor: colors.panel },
+  modalThumb: { width: 58, height: 42, borderRadius: 8, backgroundColor: colors.panelLight },
+  modalRowBody: { flex: 1 },
+  modalRowTitle: { flex: 1, color: colors.text, fontWeight: '800' },
+  modalRowMeta: { color: colors.muted, fontSize: 12, marginTop: 3 },
 });

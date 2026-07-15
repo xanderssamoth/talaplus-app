@@ -751,8 +751,8 @@ export function getRecentMedia(page?: number) {
   return list(withQuery('/v1/media', withCurrentUser({ page })), normalizeMedia);
 }
 
-export function getUserMedia(userId: string, page?: number) {
-  return list(withQuery('/v1/media/filter/list', { user_id: userId, page }), normalizeMedia);
+export function getUserMedia(userId: string, page?: number, type?: string) {
+  return list(withQuery('/v1/media/filter/list', { user_id: userId, type, page }), normalizeMedia);
 }
 
 export function getMediaByType(type: string, page?: number) {
@@ -882,8 +882,8 @@ export function getCategories(page?: number) {
   return list(withQuery('/v1/category', withCurrentUser({ page })), normalizeCategory);
 }
 
-export function getCategoriesForType(forType: string) {
-  return list(`/v1/category/for-type/${encodeURIComponent(forType)}`, normalizeCategory);
+export function getCategoriesForType(forType: string, page?: number) {
+  return list(withQuery(`/v1/category/for-type/${encodeURIComponent(forType)}`, { page }), normalizeCategory);
 }
 
 export function getPopularProducts(page?: number) {

@@ -1,10 +1,13 @@
 import { View, Text, StyleSheet, StatusBar } from "react-native";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Feather from '@expo/vector-icons/Feather';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from "react-native-safe-area-context";
 import BrandLogo from '@/components/BrandLogo';
 
 export default function HomeSceen() {
+  const { t } = useTranslation();
+
   return (
     <>
       <StatusBar
@@ -25,7 +28,7 @@ export default function HomeSceen() {
         </View>
 
         <View>
-          <Text style={{ color: 'white' }}>Discussions</Text>
+          <Text style={{ color: 'white' }}>{t('discussions')}</Text>
         </View>
       </SafeAreaView>
     </>

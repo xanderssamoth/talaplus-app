@@ -34,7 +34,7 @@ export default function ChannelsScreen() {
         <Pressable style={styles.aiCard} onPress={() => router.push('/ai')}>
           <FontAwesome5 name="robot" size={25} color={colors.primary} />
           <View style={styles.aiTextBlock}>
-            <Text style={styles.aiTitle}>TALA+ IA</Text>
+            <Text style={styles.aiTitle}>{t('talaAi')}</Text>
             <Text style={styles.aiText}>{t('askAi')}</Text>
           </View>
         </Pressable>

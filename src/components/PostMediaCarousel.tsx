@@ -1,5 +1,6 @@
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 import { ApiPostFile } from '@/lib/api';
 
@@ -27,6 +28,7 @@ export default function PostMediaCarousel({ files, compact = false }: Props) {
 }
 
 function PostMediaTile({ file, single = false, compact = false }: { file: ApiPostFile; single?: boolean; compact?: boolean }) {
+  const { t } = useTranslation();
   const isPhoto = ['photo', 'image'].includes(file.type);
 
   return (
@@ -36,7 +38,7 @@ function PostMediaTile({ file, single = false, compact = false }: { file: ApiPos
       ) : (
         <View style={styles.videoTile}>
           <Feather name="play-circle" size={compact ? 28 : 36} color={colors.text} />
-          <Text style={styles.videoText}>Video</Text>
+          <Text style={styles.videoText}>{t('video')}</Text>
         </View>
       )}
     </View>

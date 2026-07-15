@@ -80,7 +80,7 @@ export default function MediaDetailsScreen() {
       await likeMedia(media.id, nextLiked ? 'add' : 'remove');
     } catch (error) {
       setLiked(!nextLiked);
-      Alert.alert('Action impossible', error instanceof Error ? error.message : 'La requ\u00eate a \u00e9chou\u00e9.');
+      Alert.alert(t('actionImpossible'), error instanceof Error ? error.message : t('requestFailed'));
     }
   };
 
@@ -95,7 +95,7 @@ export default function MediaDetailsScreen() {
       const result = await getMediaComments(media.id);
       setComments(result.items);
     } catch (error) {
-      Alert.alert('Commentaire impossible', error instanceof Error ? error.message : 'La requ\u00eate a \u00e9chou\u00e9.');
+      Alert.alert(t('commentImpossible'), error instanceof Error ? error.message : t('requestFailed'));
     } finally {
       setSubmittingComment(false);
     }
@@ -113,7 +113,7 @@ export default function MediaDetailsScreen() {
       }
     } catch (error) {
       setWatchlisted(!next);
-      Alert.alert('Watchlist impossible', error instanceof Error ? error.message : 'La requ\u00eate a \u00e9chou\u00e9.');
+      Alert.alert(t('watchlistImpossible'), error instanceof Error ? error.message : t('requestFailed'));
     }
   };
 
@@ -154,7 +154,7 @@ export default function MediaDetailsScreen() {
     );
   }
 
-  const childTitle = media.type === 'music' ? 'Chansons' : 'Episodes';
+  const childTitle = media.type === 'music' ? t('songs') : t('episodes');
   const showChildren = (media.type === 'film_series' || media.type === 'music') && children.length > 0;
   const isOwner = media.userId === user.id;
 
@@ -177,27 +177,27 @@ export default function MediaDetailsScreen() {
 
         <View style={styles.content}>
           <Text style={styles.title}>{media.title}</Text>
-          <Text style={styles.subtitleVisible}>{channelLabel(media.type)}{media.views ? ` · ${compactNumber(media.views)} ${pluralize(media.views, 'vue', 'vues')}` : ''}</Text>
-          <Text style={styles.subtitle}>{channelLabel(media.type)}{media.views ? ` · ${media.views} vues` : ''}</Text>
+          <Text style={styles.subtitleVisible}>{channelLabel(media.type, t)}{media.views ? ` · ${compactNumber(media.views)} ${pluralize(media.views, t('view'), t('views'))}` : ''}</Text>
+          <Text style={styles.subtitle}>{channelLabel(media.type, t)}{media.views ? ` · ${media.views} ${t('views')}` : ''}</Text>
           <View style={styles.publisherRow}>
             {media.avatarUrl ? <Image source={{ uri: media.avatarUrl }} style={styles.publisherAvatar} /> : <View style={styles.publisherAvatar}><Text style={styles.avatarText}>{(media.username || 'T').charAt(0)}</Text></View>}
             <View style={styles.publisherBody}>
               <Text style={styles.publisherName}>@{media.username || 'talaplus'}</Text>
-              <Text style={styles.publisherMeta}>{channelLabel(media.type)}</Text>
+              <Text style={styles.publisherMeta}>{channelLabel(media.type, t)}</Text>
             </View>
             {!isOwner && (
               <Pressable style={[styles.subscribeButton, subscribed && styles.subscribeButtonActive]} onPress={subscribe}>
-                <Text style={[styles.subscribeText, subscribed && styles.subscribeTextActive]}>{subscribed ? 'Abonné' : "S'abonner"}</Text>
+                <Text style={[styles.subscribeText, subscribed && styles.subscribeTextActive]}>{subscribed ? t('subscribed') : t('subscribe')}</Text>
               </Pressable>
             )}
           </View>
           <View style={styles.statsRow}>
-            <StatPill singular="vue" plural="vues" value={stats.views} />
-            <StatPill singular="lecture" plural="lectures" value={stats.plays} />
-            <StatPill singular="like" plural="likes" value={stats.likes} />
+            <StatPill singular={t('view')} plural={t('views')} value={stats.views} />
+            <StatPill singular={t('play')} plural={t('plays')} value={stats.plays} />
+            <StatPill singular={t('like')} plural={t('likes')} value={stats.likes} />
           </View>
           {!!media.description && <LinkedDescription text={media.description} />}
-          {!!media.author && <Text style={styles.authorLine}>Auteur : {media.author}</Text>}
+          {!!media.author && <Text style={styles.authorLine}>{t('author')} : {media.author}</Text>}
           {!!media.categories?.length && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryBadges}>
               {media.categories.map((category) => (
@@ -210,15 +210,15 @@ export default function MediaDetailsScreen() {
           )}
 
           <View style={styles.actions}>
-            <ActionButton icon="heart" label="J'aime" active={liked} value={media.likes} onPress={toggleLike} />
-            <ActionButton icon="message-square" label="Commenter" onPress={() => setCommentModal(true)} />
-            <ActionButton icon="share" label="Partager" onPress={() => setShareVisible(true)} />
-            <ActionButton icon={watchlisted ? 'check-circle' : 'plus-square'} label={watchlisted ? 'Ajoutée' : 'Ajouter'} active={watchlisted} onPress={toggleWatchlist} />
+            <ActionButton icon="heart" label={t('like')} active={liked} value={media.likes} onPress={toggleLike} />
+            <ActionButton icon="message-square" label={t('comment')} onPress={() => setCommentModal(true)} />
+            <ActionButton icon="share" label={t('share')} onPress={() => setShareVisible(true)} />
+            <ActionButton icon={watchlisted ? 'check-circle' : 'plus-square'} label={watchlisted ? t('added') : t('add')} active={watchlisted} onPress={toggleWatchlist} />
           </View>
 
           {showChildren && <MediaSection title={childTitle} items={children.slice(0, 5)} route={`/media/${media.id}/list/children?title=${encodeURIComponent(childTitle)}&type=${encodeURIComponent(media.type ?? '')}`} compact />}
           <CommentSection mediaId={media.id} items={comments.slice(0, 5)} onLike={toggleCommentLike} />
-          {!!related.length && <MediaSection title="A suivre" items={related.slice(0, 5)} route={`/media/${media.id}/list/related?title=${encodeURIComponent('A suivre')}&type=${encodeURIComponent(media.type ?? '')}`} />}
+          {!!related.length && <MediaSection title={t('upNext')} items={related.slice(0, 5)} route={`/media/${media.id}/list/related?title=${encodeURIComponent(t('upNext'))}&type=${encodeURIComponent(media.type ?? '')}`} />}
         </View>
       </ScrollView>
 
@@ -226,7 +226,7 @@ export default function MediaDetailsScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.commentModal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Commenter</Text>
+              <Text style={styles.modalTitle}>{t('comment')}</Text>
               <Pressable onPress={() => setCommentModal(false)}><Feather name="x" size={22} color={colors.text} /></Pressable>
             </View>
             <View style={styles.userRow}>
@@ -236,9 +236,9 @@ export default function MediaDetailsScreen() {
                 <Text style={styles.userMeta}>@{user.username}</Text>
               </View>
             </View>
-            <TextInput value={commentText} onChangeText={setCommentText} placeholder="Votre commentaire..." placeholderTextColor={colors.muted} style={styles.commentInput} multiline />
+            <TextInput value={commentText} onChangeText={setCommentText} placeholder={t('yourComment')} placeholderTextColor={colors.muted} style={styles.commentInput} multiline />
             <Pressable style={[styles.submitButton, (!commentText.trim() || submittingComment) && styles.submitButtonDisabled]} onPress={submitComment} disabled={!commentText.trim() || submittingComment}>
-              <Text style={styles.submitText}>{submittingComment ? 'Envoi...' : 'Publier'}</Text>
+              <Text style={styles.submitText}>{submittingComment ? t('sending') : t('publish')}</Text>
             </Pressable>
           </View>
         </View>
@@ -273,11 +273,13 @@ function StatPill({ singular, plural, value }: { singular: string; plural: strin
 }
 
 function MediaSection({ title, items, route, compact }: { title: string; items: ApiMedia[]; route: string; compact?: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <Pressable onPress={() => router.push(route)}><Text style={styles.moreText}>Voir plus</Text></Pressable>
+        <Pressable onPress={() => router.push(route)}><Text style={styles.moreText}>{t('viewAll')}</Text></Pressable>
       </View>
       {items.map((item) => <MediaRow key={item.id} media={item} compact={compact} />)}
     </View>
@@ -285,12 +287,15 @@ function MediaSection({ title, items, route, compact }: { title: string; items: 
 }
 
 function MediaRow({ media, compact }: { media: ApiMedia; compact?: boolean }) {
+  const { t } = useTranslation();
+  const meta = compact ? media.category || channelLabel(media.type, t) : channelLabel(media.type, t);
+
   return (
     <Pressable style={styles.mediaRow} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
       {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.rowImage} /> : <View style={styles.rowImage} />}
       <View style={styles.rowBody}>
         <Text style={styles.rowTitle} numberOfLines={1}>{media.title}</Text>
-        <Text style={styles.rowMeta} numberOfLines={1}>{compact ? media.category || media.type : media.type}</Text>
+        <Text style={styles.rowMeta} numberOfLines={1}>{meta}</Text>
       </View>
       <Feather name="more-vertical" size={18} color={colors.muted} />
     </Pressable>
@@ -298,13 +303,15 @@ function MediaRow({ media, compact }: { media: ApiMedia; compact?: boolean }) {
 }
 
 function CommentSection({ mediaId, items, onLike }: { mediaId: string; items: ApiPost[]; onLike: (comment: ApiPost) => Promise<unknown> }) {
+  const { t } = useTranslation();
+
   if (!items.length) return null;
 
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Commentaires</Text>
-        <Pressable onPress={() => router.push(`/media/${mediaId}/list/comments?title=${encodeURIComponent('Commentaires')}`)}><Text style={styles.moreText}>Voir plus</Text></Pressable>
+        <Text style={styles.sectionTitle}>{t('comments')}</Text>
+        <Pressable onPress={() => router.push(`/media/${mediaId}/list/comments?title=${encodeURIComponent(t('comments'))}`)}><Text style={styles.moreText}>{t('viewAll')}</Text></Pressable>
       </View>
       {items.map((item) => <CommentCard key={item.id} comment={item} onLike={() => onLike(item)} />)}
     </View>
@@ -347,16 +354,16 @@ function LinkedDescription({ text }: { text: string }) {
   );
 }
 
-function channelLabel(type?: string) {
+function channelLabel(type: string | undefined, t: (key: string) => string) {
   const labels: Record<string, string> = {
-    film_series: 'Films & Series',
-    comedy: 'Com\u00e9die',
-    music: 'Musique',
-    education: 'Education',
-    business: 'Business',
-    crafts_diy: 'M\u00e9tiers & Bricolage',
-    sports: 'Sport Simul\u00e9',
-    documentary: 'Documentaires',
+    film_series: t('filmsAndSeries'),
+    comedy: t('comedy'),
+    music: t('music'),
+    education: t('education'),
+    business: t('business'),
+    crafts_diy: t('crafts'),
+    sports: t('simulatedSport'),
+    documentary: t('documentaries'),
   };
 
   return type ? labels[type] ?? type : 'TALA+';

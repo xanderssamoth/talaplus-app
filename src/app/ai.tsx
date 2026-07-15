@@ -2,18 +2,21 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 
-const prompts = ['Que regarder ?', 'Apprendre un métier', 'Créer un business', 'Aide & Support'];
+const promptKeys = ['aiPromptWatch', 'aiPromptLearn', 'aiPromptBusiness', 'aiPromptSupport'];
 
 export default function AiScreen() {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="x" size={23} color={colors.text} /></Pressable>
         <View style={styles.headerText}>
-          <Text style={styles.title}>TALA+ IA</Text>
-          <Text style={styles.status}>En ligne</Text>
+          <Text style={styles.title}>{t('talaAi')}</Text>
+          <Text style={styles.status}>{t('online')}</Text>
         </View>
         <Feather name="more-vertical" size={22} color={colors.text} />
       </View>
@@ -24,20 +27,20 @@ export default function AiScreen() {
         </View>
 
         <View style={styles.bubble}>
-          <Text style={styles.bubbleTitle}>Salut !</Text>
-          <Text style={styles.bubbleText}>Je suis ton assistant TALA+. Que puis-je faire pour toi ?</Text>
+          <Text style={styles.bubbleTitle}>{t('hi')}</Text>
+          <Text style={styles.bubbleText}>{t('aiGreeting')}</Text>
         </View>
 
-        {prompts.map((prompt) => (
-          <Pressable key={prompt} style={styles.prompt}>
-            <Text style={styles.promptText}>{prompt}</Text>
+        {promptKeys.map((promptKey) => (
+          <Pressable key={promptKey} style={styles.prompt}>
+            <Text style={styles.promptText}>{t(promptKey)}</Text>
             <Feather name="chevron-right" size={18} color={colors.text} />
           </Pressable>
         ))}
       </ScrollView>
 
       <View style={styles.composer}>
-        <TextInput placeholder="Écris ton message..." placeholderTextColor={colors.muted} style={styles.input} />
+        <TextInput placeholder={t('writeMessage')} placeholderTextColor={colors.muted} style={styles.input} />
         <Pressable style={styles.send}><Feather name="send" size={18} color={colors.text} /></Pressable>
       </View>
     </SafeAreaView>

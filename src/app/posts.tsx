@@ -3,6 +3,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
@@ -11,6 +12,7 @@ import { colors } from '@/constants/theme';
 import { ApiPost, getNewsFeed } from '@/lib/api';
 
 export default function PostsScreen() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ApiPost[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -36,7 +38,7 @@ export default function PostsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Posts</Text>
+        <Text style={styles.title}>{t('posts')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -45,7 +47,7 @@ export default function PostsScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun post" body="Les posts publics appara\u00eetront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noContentTitle')} body={t('noPosts')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => <PostRow post={item} />}
       />

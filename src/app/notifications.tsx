@@ -3,12 +3,14 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiNotification, getNotifications, markNotificationAsRead, muteUser } from '@/lib/api';
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ApiNotification[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -58,7 +60,7 @@ export default function NotificationsScreen() {
         <Pressable onPress={() => router.back()}>
           <Feather name="arrow-left" size={24} color={colors.text} />
         </Pressable>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.title}>{t('notifications')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -68,12 +70,13 @@ export default function NotificationsScreen() {
         contentContainerStyle={styles.content}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucune notification" body="Les notifications apparaîtront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noNotificationTitle')} body={t('noNotificationBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => (
           <NotificationItem
             notification={item}
             menuOpen={openMenuId === item.id}
+            t={t}
             onOpen={() => openNotification(item)}
             onToggleMenu={() => setOpenMenuId((current) => current === item.id ? null : item.id)}
             onMarkRead={() => markRead(item)}
@@ -85,9 +88,10 @@ export default function NotificationsScreen() {
   );
 }
 
-function NotificationItem({ notification, menuOpen, onOpen, onToggleMenu, onMarkRead, onMute }: {
+function NotificationItem({ notification, menuOpen, t, onOpen, onToggleMenu, onMarkRead, onMute }: {
   notification: ApiNotification;
   menuOpen: boolean;
+  t: (key: string) => string;
   onOpen: () => void;
   onToggleMenu: () => void;
   onMarkRead: () => void;
@@ -117,11 +121,11 @@ function NotificationItem({ notification, menuOpen, onOpen, onToggleMenu, onMark
         <View style={styles.menu}>
           {notification.canMute && (
             <Pressable style={styles.menuItem} onPress={onMute}>
-              <Text style={styles.menuText}>Ne plus voir ça</Text>
+              <Text style={styles.menuText}>{t('hideThis')}</Text>
             </Pressable>
           )}
           <Pressable style={styles.menuItem} onPress={onMarkRead}>
-            <Text style={styles.menuText}>Marquer comme lue</Text>
+            <Text style={styles.menuText}>{t('markAsRead')}</Text>
           </Pressable>
         </View>
       )}

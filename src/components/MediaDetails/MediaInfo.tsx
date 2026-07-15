@@ -1,5 +1,6 @@
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 type MediaInfoProps = {
   title: string;
@@ -13,6 +14,7 @@ type MediaInfoProps = {
 }
 
 export default function MediaInfo(props: MediaInfoProps) {
+  const { t } = useTranslation();
   const {
     title,
     releaseYear,
@@ -31,7 +33,7 @@ export default function MediaInfo(props: MediaInfoProps) {
       <View style={styles.headerContainer}>
         <Text style={styles.metaInfoText}>{releaseYear}</Text>
         <Text style={styles.age}>{ageRestriction}</Text>
-        <Text style={styles.metaInfoText}>{type === "MOVIE" ? `${duration}min` : `${nrOfSeasons} seasons`}</Text>
+        <Text style={styles.metaInfoText}>{type === "MOVIE" ? `${duration}min` : `${nrOfSeasons} ${t('seasons')}`}</Text>
       </View>
 
       <Pressable
@@ -39,7 +41,7 @@ export default function MediaInfo(props: MediaInfoProps) {
         onPress={() => onPlayMediaPressed()}
       >
         <FontAwesome name="play" size={20} color="black" />
-        <Text style={{ fontWeight: '600' }}>Play</Text>
+        <Text style={{ fontWeight: '600' }}>{t('play')}</Text>
       </Pressable>
 
       <Text style={{ color: 'white' }}>{description}</Text>

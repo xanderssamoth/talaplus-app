@@ -3,12 +3,14 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiUserProfile, getUserConnections } from '@/lib/api';
 
 export default function ShareConnectionsScreen() {
+  const { t } = useTranslation();
   const { link } = useLocalSearchParams<{ link?: string }>();
   const [items, setItems] = useState<ApiUserProfile[]>([]);
   const [page, setPage] = useState(1);
@@ -38,7 +40,7 @@ export default function ShareConnectionsScreen() {
         <Pressable onPress={() => router.back()}>
           <Feather name="arrow-left" size={24} color={colors.text} />
         </Pressable>
-        <Text style={styles.title}>Message</Text>
+        <Text style={styles.title}>{t('message')}</Text>
         <View style={{ width: 24 }} />
       </View>
       {!!link && <Text style={styles.link} numberOfLines={1}>{link}</Text>}
@@ -48,7 +50,7 @@ export default function ShareConnectionsScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun utilisateur" body="Tes connexions apparaîtront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noUserTitle')} body={t('noUserBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => <ConnectionRow user={item} />}
       />

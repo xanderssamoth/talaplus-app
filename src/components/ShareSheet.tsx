@@ -24,62 +24,9 @@ const shareIcons = {
   snapchat: require('../../assets/share-icons/logo-snapchat.png'),
 };
 
-const copies = {
-  fr: {
-    sendTo: 'Envoyer à :',
-    shareOn: 'Partager sur :',
-    post: 'Post',
-    message: 'Message',
-    facebook: 'Facebook',
-    x: 'X',
-    whatsapp: 'Whatsapp',
-    snapchat: 'Snapchat',
-    report: 'Signaler',
-    download: 'Télécharger',
-    cancel: 'Annuler',
-    sent: 'Partage envoyé',
-    sentBody: 'Le contenu a été partagé.',
-    unavailable: 'Action indisponible',
-  },
-  en: {
-    sendTo: 'Send to:',
-    shareOn: 'Share on:',
-    post: 'Post',
-    message: 'Message',
-    facebook: 'Facebook',
-    x: 'X',
-    whatsapp: 'Whatsapp',
-    snapchat: 'Snapchat',
-    report: 'Report',
-    download: 'Download',
-    cancel: 'Cancel',
-    sent: 'Shared',
-    sentBody: 'The content has been shared.',
-    unavailable: 'Action unavailable',
-  },
-  ln: {
-    sendTo: 'Tindela:',
-    shareOn: 'Kabola na:',
-    post: 'Post',
-    message: 'Message',
-    facebook: 'Facebook',
-    x: 'X',
-    whatsapp: 'Whatsapp',
-    snapchat: 'Snapchat',
-    report: 'Signaler',
-    download: 'Télécharger',
-    cancel: 'Kanga',
-    sent: 'Ekabolami',
-    sentBody: 'Contenu ekabolami.',
-    unavailable: 'Likambo oyo ezali naino te',
-  },
-};
-
 export default function ShareSheet({ visible, entity, entityId, onClose }: ShareSheetProps) {
-  const { i18n } = useTranslation();
+  const { t } = useTranslation();
   const [connections, setConnections] = useState<ApiUserProfile[]>([]);
-  const language = (i18n.language || 'fr').split('-')[0] as keyof typeof copies;
-  const copy = copies[language] ?? copies.fr;
   const link = useMemo(() => `https://talaplus.tv/${entity}/${entityId}`, [entity, entityId]);
 
   useEffect(() => {
@@ -97,10 +44,10 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
   const shareAsPost = async () => {
     try {
       await shareEntity(entity, entityId);
-      Alert.alert(copy.sent, copy.sentBody);
+      Alert.alert(t('shareSent'), t('shareSentBody'));
       onClose();
     } catch (error) {
-      Alert.alert(copy.unavailable, error instanceof Error ? error.message : copy.unavailable);
+      Alert.alert(t('unavailableAction'), error instanceof Error ? error.message : t('unavailableAction'));
     }
   };
 
@@ -109,25 +56,25 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
       await Linking.openURL(url);
       onClose();
     } catch {
-      Alert.alert(copy.unavailable, copy.unavailable);
+      Alert.alert(t('unavailableAction'), t('unavailableAction'));
     }
   };
 
   const encoded = encodeURIComponent(link);
   const shareOptions = [
-    { key: 'post', label: copy.post, icon: shareIcons.post, onPress: shareAsPost },
-    { key: 'message', label: copy.message, icon: shareIcons.message, onPress: openConnections },
-    { key: 'facebook', label: copy.facebook, icon: shareIcons.facebook, onPress: () => openExternal(`https://www.facebook.com/sharer/sharer.php?u=${encoded}`) },
-    { key: 'x', label: copy.x, icon: shareIcons.x, onPress: () => openExternal(`https://twitter.com/intent/tweet?url=${encoded}`) },
-    { key: 'whatsapp', label: copy.whatsapp, icon: shareIcons.whatsapp, onPress: () => openExternal(`https://wa.me/?text=${encoded}`) },
-    { key: 'snapchat', label: copy.snapchat, icon: shareIcons.snapchat, onPress: () => openExternal(`https://www.snapchat.com/scan?attachmentUrl=${encoded}`) },
+    { key: 'post', label: t('posts'), icon: shareIcons.post, onPress: shareAsPost },
+    { key: 'message', label: t('message'), icon: shareIcons.message, onPress: openConnections },
+    { key: 'facebook', label: t('facebook'), icon: shareIcons.facebook, onPress: () => openExternal(`https://www.facebook.com/sharer/sharer.php?u=${encoded}`) },
+    { key: 'x', label: 'X', icon: shareIcons.x, onPress: () => openExternal(`https://twitter.com/intent/tweet?url=${encoded}`) },
+    { key: 'whatsapp', label: t('whatsapp'), icon: shareIcons.whatsapp, onPress: () => openExternal(`https://wa.me/?text=${encoded}`) },
+    { key: 'snapchat', label: t('snapchat'), icon: shareIcons.snapchat, onPress: () => openExternal(`https://www.snapchat.com/scan?attachmentUrl=${encoded}`) },
   ];
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet}>
-          <Text style={styles.sectionTitle}>{copy.sendTo}</Text>
+          <Text style={styles.sectionTitle}>{t('shareSendTo')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.peopleRow}>
             {connections.map((user) => (
               <Pressable key={user.id} style={styles.person} onPress={openConnections}>
@@ -139,11 +86,11 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
               <View style={styles.moreCircle}>
                 <Feather name="more-horizontal" size={26} color={colors.text} />
               </View>
-              <Text style={styles.personName}>Plus</Text>
+              <Text style={styles.personName}>{t('more')}</Text>
             </Pressable>
           </ScrollView>
 
-          <Text style={styles.sectionTitle}>{copy.shareOn}</Text>
+          <Text style={styles.sectionTitle}>{t('shareOn')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shareRow}>
             {shareOptions.map((option) => (
               <Pressable key={option.key} style={styles.shareOption} onPress={option.onPress}>
@@ -154,18 +101,18 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
           </ScrollView>
 
           <View style={styles.toolsRow}>
-            <Pressable style={styles.tool} onPress={() => Alert.alert(copy.report, copy.unavailable)}>
+            <Pressable style={styles.tool} onPress={() => Alert.alert(t('report'), t('unavailableAction'))}>
               <View style={styles.toolIcon}><Feather name="flag" size={24} color={colors.text} /></View>
-              <Text style={styles.toolLabel}>{copy.report}</Text>
+              <Text style={styles.toolLabel}>{t('report')}</Text>
             </Pressable>
-            <Pressable style={styles.tool} onPress={() => Alert.alert(copy.download, copy.unavailable)}>
+            <Pressable style={styles.tool} onPress={() => Alert.alert(t('download'), t('unavailableAction'))}>
               <View style={styles.toolIcon}><Feather name="download" size={24} color={colors.text} /></View>
-              <Text style={styles.toolLabel}>{copy.download}</Text>
+              <Text style={styles.toolLabel}>{t('download')}</Text>
             </Pressable>
           </View>
 
           <Pressable style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelText}>{copy.cancel}</Text>
+            <Text style={styles.cancelText}>{t('cancel')}</Text>
           </Pressable>
         </Pressable>
       </Pressable>

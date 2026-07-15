@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
@@ -11,6 +12,7 @@ import ShareSheet from '@/components/ShareSheet';
 import { addToWatchlist, ApiMedia, getMedia, getUserWatchlist, likeMedia, removeFromWatchlist, saveMediaProgress } from '@/lib/api';
 
 export default function PlayerScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const [media, setMedia] = useState<ApiMedia | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,7 +122,7 @@ export default function PlayerScreen() {
       await likeMedia(media.id, next ? 'add' : 'remove');
     } catch (error) {
       setLiked(!next);
-      Alert.alert('Action impossible', error instanceof Error ? error.message : 'La requête a échoué.');
+      Alert.alert(t('actionImpossible'), error instanceof Error ? error.message : t('requestFailed'));
     }
   };
 
@@ -136,7 +138,7 @@ export default function PlayerScreen() {
       }
     } catch (error) {
       setWatchlisted(!next);
-      Alert.alert('Watchlist impossible', error instanceof Error ? error.message : 'La requête a échoué.');
+      Alert.alert(t('watchlistImpossible'), error instanceof Error ? error.message : t('requestFailed'));
     }
   };
 
@@ -145,7 +147,7 @@ export default function PlayerScreen() {
   }
 
   if (!media || !videoSource) {
-    return <SafeAreaView style={styles.container}><View style={styles.emptyWrap}><EmptyState title="Vidéo indisponible" body="La vidéo sera lue depuis son URL API dès qu'elle sera disponible." /></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><View style={styles.emptyWrap}><EmptyState title={t('videoUnavailableTitle')} body={t('videoUnavailableBody')} /></View></SafeAreaView>;
   }
 
   return (
@@ -203,7 +205,7 @@ export default function PlayerScreen() {
           <Pressable onPress={() => setTitleExpanded((current) => !current)}>
             <Text style={[styles.playerTitle, titleExpanded && styles.playerTitleExpanded]} numberOfLines={titleExpanded ? undefined : 1}>{media.title}</Text>
           </Pressable>
-          <Text style={styles.playerSubtitle}>{channelLabel(media.type)}</Text>
+          <Text style={styles.playerSubtitle}>{channelLabel(media.type, t)}</Text>
 
           <View
             style={styles.progressTrack}
@@ -243,21 +245,20 @@ function formatTime(totalSeconds: number) {
   return [hours, minutes, seconds].map((item) => String(item).padStart(2, '0')).join(':');
 }
 
-function channelLabel(type?: string) {
+function channelLabel(type: string | undefined, t: (key: string) => string) {
   const labels: Record<string, string> = {
-    film_series: 'Films & Series',
-    comedy: 'Comédie',
-    music: 'Musique',
-    education: 'Education',
-    business: 'Business',
-    crafts_diy: 'Métiers & Bricolage',
-    sports: 'Sport Simulé',
-    documentary: 'Documentaires',
+    film_series: t('filmsAndSeries'),
+    comedy: t('comedy'),
+    music: t('music'),
+    education: t('education'),
+    business: t('business'),
+    crafts_diy: t('crafts'),
+    sports: t('simulatedSport'),
+    documentary: t('documentaries'),
   };
 
   return type ? labels[type] ?? type : 'TALA+';
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   emptyWrap: { padding: 16 },

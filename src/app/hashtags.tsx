@@ -3,12 +3,14 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiHashtag, getHashtags } from '@/lib/api';
 
 export default function HashtagsScreen() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ApiHashtag[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -34,7 +36,7 @@ export default function HashtagsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Hashtags</Text>
+        <Text style={styles.title}>{t('hashtags')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -44,7 +46,7 @@ export default function HashtagsScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun hashtag" body="Les hashtags appara\u00eetront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noHashtagTitle')} body={t('noHashtagBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => (
           <Pressable style={styles.badge} onPress={() => router.push(`/hashtag/${encodeURIComponent(item.name)}`)}>

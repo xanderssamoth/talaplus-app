@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
@@ -11,6 +12,7 @@ import { colors } from '@/constants/theme';
 import { ApiPost, getPost } from '@/lib/api';
 
 export default function PostDetailsScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [post, setPost] = useState<ApiPost | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,13 +25,13 @@ export default function PostDetailsScreen() {
   }, [id]);
 
   if (loading) return <SafeAreaView style={styles.container}><LoadingState /></SafeAreaView>;
-  if (!post) return <SafeAreaView style={styles.container}><EmptyState title="Post introuvable" body="Ce post n'est pas disponible." /></SafeAreaView>;
+  if (!post) return <SafeAreaView style={styles.container}><EmptyState title={t('postNotFoundTitle')} body={t('postNotFoundBody')} /></SafeAreaView>;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Post</Text>
+        <Text style={styles.title}>{t('posts')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <View style={styles.card}>

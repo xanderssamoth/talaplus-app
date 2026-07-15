@@ -3,12 +3,14 @@ import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from 'react
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiUserProfile, getUserProfile } from '@/lib/api';
 
 export default function UserProfileScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const [profile, setProfile] = useState<ApiUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export default function UserProfileScreen() {
   }
 
   if (!profile) {
-    return <SafeAreaView style={styles.container}><View style={styles.center}><EmptyState title="Profil indisponible" body="Les informations de cet utilisateur ne sont pas disponibles." /></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><View style={styles.center}><EmptyState title={t('profileUnavailableTitle')} body={t('profileUnavailableBody')} /></View></SafeAreaView>;
   }
 
   return (

@@ -3,11 +3,14 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 
 const aboutUrl = 'https://talaplus.tv/about';
 
 export default function AboutScreen() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     Linking.openURL(aboutUrl).catch(() => undefined);
   }, []);
@@ -20,9 +23,9 @@ export default function AboutScreen() {
         <View style={{ width: 24 }} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.text}>La page à propos de TALA+ s’ouvre dans votre navigateur.</Text>
+        <Text style={styles.text}>{t('aboutBrowserText')}</Text>
         <Pressable style={styles.button} onPress={() => Linking.openURL(aboutUrl)}>
-          <Text style={styles.buttonText}>Ouvrir la page</Text>
+          <Text style={styles.buttonText}>{t('openPage')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

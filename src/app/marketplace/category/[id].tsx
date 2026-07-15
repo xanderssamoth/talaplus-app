@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import ProductCard from '@/components/ProductCard';
@@ -10,12 +11,13 @@ import { colors } from '@/constants/theme';
 import { ApiProduct, getProductsByCategory } from '@/lib/api';
 
 export default function CategoryProductsScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string; name?: string }>();
   const [items, setItems] = useState<ApiProduct[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const title = params.name ? decodeURIComponent(params.name) : 'Cat\u00e9gorie';
+  const title = params.name ? decodeURIComponent(params.name) : t('categories');
 
   const load = (nextPage: number) => {
     if (!params.id || (loading && items.length) || nextPage > lastPage) return;
@@ -55,7 +57,7 @@ export default function CategoryProductsScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun produit" body="Les produits de cette cat\u00e9gorie appara\u00eetront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noProductTitle')} body={t('noCategoryProductsBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => <View style={styles.cardWrap}><ProductCard product={item} /></View>}
       />

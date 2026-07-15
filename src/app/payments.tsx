@@ -3,12 +3,14 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiPayment, getUserPayments } from '@/lib/api';
 
 export default function PaymentsScreen() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ApiPayment[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -34,7 +36,7 @@ export default function PaymentsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Paiements</Text>
+        <Text style={styles.title}>{t('payments')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -43,7 +45,7 @@ export default function PaymentsScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun paiement" body="Vos paiements apparaîtront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noPaymentTitle')} body={t('noPaymentBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item }) => <PaymentRow payment={item} />}
       />

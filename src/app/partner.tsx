@@ -2,39 +2,44 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 
+const statKeys = [
+  ['signups', '256', '+12%'],
+  ['subscriptions', '98', '+8%'],
+  ['revenue', '245,50 $', '+16%'],
+] as const;
+
 export default function PartnerScreen() {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Partenaire</Text>
+        <Text style={styles.title}>{t('partner')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.codeCard}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Ton code partenaire</Text>
+            <Text style={styles.label}>{t('yourPartnerCode')}</Text>
             <Text style={styles.code}>TALA12345</Text>
           </View>
-          <Pressable style={styles.share}><Text style={styles.shareText}>Partager</Text></Pressable>
+          <Pressable style={styles.share}><Text style={styles.shareText}>{t('share')}</Text></Pressable>
         </View>
 
         <View style={styles.statHeader}>
-          <Text style={styles.blockTitle}>Statistiques</Text>
-          <Text style={styles.period}>7 jours</Text>
+          <Text style={styles.blockTitle}>{t('statistics')}</Text>
+          <Text style={styles.period}>{t('sevenDays')}</Text>
         </View>
 
         <View style={styles.stats}>
-          {[
-            ['Inscriptions', '256', '+12%'],
-            ['Abonnements', '98', '+8%'],
-            ['Revenus', '245,50 $', '+16%'],
-          ].map(([label, value, trend]) => (
-            <View key={label} style={styles.stat}>
-              <Text style={styles.statLabel}>{label}</Text>
+          {statKeys.map(([labelKey, value, trend]) => (
+            <View key={labelKey} style={styles.stat}>
+              <Text style={styles.statLabel}>{t(labelKey)}</Text>
               <Text style={styles.statValue}>{value}</Text>
               <Text style={styles.trend}>{trend}</Text>
             </View>
@@ -42,7 +47,7 @@ export default function PartnerScreen() {
         </View>
 
         <View style={styles.chart}>
-          <Text style={styles.blockTitle}>Évolution des revenus</Text>
+          <Text style={styles.blockTitle}>{t('revenueEvolution')}</Text>
           <View style={styles.chartArea}>
             {[80, 130, 100, 170, 180, 220, 160, 190, 250, 290].map((height, index) => (
               <View key={index} style={styles.chartBarWrap}>
@@ -51,7 +56,7 @@ export default function PartnerScreen() {
             ))}
           </View>
           <View style={styles.days}>
-            {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => <Text key={day} style={styles.day}>{day}</Text>)}
+            {['mondayShort', 'tuesdayShort', 'wednesdayShort', 'thursdayShort', 'fridayShort', 'saturdayShort', 'sundayShort'].map((dayKey) => <Text key={dayKey} style={styles.day}>{t(dayKey)}</Text>)}
           </View>
         </View>
       </ScrollView>

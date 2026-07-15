@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiMedia, ApiProduct, searchApi } from '@/lib/api';
@@ -13,6 +14,7 @@ type SearchOverlayProps = {
 };
 
 export default function SearchOverlay({ visible, onClose, type = 'media' }: SearchOverlayProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<(ApiMedia | ApiProduct)[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,7 @@ export default function SearchOverlay({ visible, onClose, type = 'media' }: Sear
               autoFocus
               value={query}
               onChangeText={setQuery}
-              placeholder={type === 'product' ? 'Rechercher un produit...' : 'Rechercher une vid\u00e9o...'}
+              placeholder={type === 'product' ? t('searchProduct') : t('searchVideo')}
               placeholderTextColor={colors.muted}
               style={styles.input}
             />

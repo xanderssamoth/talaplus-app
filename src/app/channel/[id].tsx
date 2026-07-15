@@ -3,21 +3,22 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import SectionTitle from '@/components/SectionTitle';
 import { colors } from '@/constants/theme';
 import { ApiMedia, getRecentMedia } from '@/lib/api';
 
-const labels: Record<string, string> = {
-  films: 'Films & Series',
-  comedie: 'Com\u00e9die',
-  musique: 'Musique',
-  education: 'Education',
-  business: 'Business',
-  metiers: 'M\u00e9tiers & Bricolage',
-  sport: 'Sport Simul\u00e9',
-  documentaires: 'Documentaires',
+const labelKeys: Record<string, string> = {
+  films: 'filmsAndSeries',
+  comedie: 'comedy',
+  musique: 'music',
+  education: 'education',
+  business: 'business',
+  metiers: 'crafts',
+  sport: 'simulatedSport',
+  documentaires: 'documentaries',
 };
 
 const typeByChannel: Record<string, string> = {
@@ -32,9 +33,10 @@ const typeByChannel: Record<string, string> = {
 };
 
 export default function ChannelDetailsScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const channelId = Array.isArray(id) ? id[0] : id ?? 'musique';
-  const title = labels[channelId] ?? 'TALA+';
+  const title = labelKeys[channelId] ? t(labelKeys[channelId]) : 'TALA+';
   const type = typeByChannel[channelId] ?? channelId;
   const [media, setMedia] = useState<ApiMedia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function ChannelDetailsScreen() {
             <LoadingState />
           ) : media.length ? (
             <>
-              <SectionTitle title={`Top ${title}`} action="Voir tout" onActionPress={() => router.push({ pathname: '/videos/popular', params: { type, title: `Top ${title}` } })} />
+              <SectionTitle title={`${t('topPrefix')} ${title}`} action={t('viewAll')} onActionPress={() => router.push({ pathname: '/videos/popular', params: { type, title: `${t('topPrefix')} ${title}` } })} />
               <View style={styles.topRow}>
                 {media.slice(0, 3).map((item, index) => (
                   <Pressable key={item.id} style={styles.topCard} onPress={() => router.push(`/mediaDetails/${item.id}`)}>
@@ -69,7 +71,7 @@ export default function ChannelDetailsScreen() {
                 ))}
               </View>
 
-              <SectionTitle title="Nouveaut\u00e9s" action="Voir tout" onActionPress={() => router.push({ pathname: '/videos/recent', params: { type, title: 'Nouveaut\u00e9s' } })} />
+              <SectionTitle title={t('latest')} action={t('viewAll')} onActionPress={() => router.push({ pathname: '/videos/recent', params: { type, title: t('latest') } })} />
               {media.slice(3, 9).map((item) => (
                 <Pressable key={item.id} style={styles.song} onPress={() => router.push(`/mediaDetails/${item.id}`)}>
                   {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.songImage} /> : <View style={styles.songImage} />}
@@ -82,7 +84,7 @@ export default function ChannelDetailsScreen() {
               ))}
             </>
           ) : (
-            <EmptyState title="Aucun contenu" body="Les contenus de cette chaine viendront directement de l API." />
+            <EmptyState title={t('noChannelContentTitle')} body={t('noChannelContentBody')} />
           )}
         </View>
       </ScrollView>

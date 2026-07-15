@@ -1,7 +1,8 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/AppHeader';
 import { colors } from '@/constants/theme';
 
@@ -55,7 +56,7 @@ const entrepreneurs: Entrepreneur[] = [
     id: 'jean',
     name: 'Jean Mbuyi',
     country: 'RDC',
-    flag: '🇨🇩',
+    flag: 'CD',
     category: 'Développement Mobile',
     rating: '4,9',
     reviews: 128,
@@ -68,11 +69,11 @@ const entrepreneurs: Entrepreneur[] = [
     id: 'amina',
     name: 'Amina Diop',
     country: 'Sénégal',
-    flag: '🇸🇳',
+    flag: 'SN',
     category: 'Design Graphique',
     rating: '4,8',
     reviews: 96,
-    description: 'Création d’identités visuelles modernes et designs percutants.',
+    description: "Création d'identités visuelles modernes et designs percutants.",
     missions: 98,
     tags: ['Logo', 'Branding', 'Affiche', 'UI/UX', '+1'],
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80',
@@ -81,7 +82,7 @@ const entrepreneurs: Entrepreneur[] = [
     id: 'jonathan',
     name: 'Jonathan K.',
     country: 'Cameroun',
-    flag: '🇨🇲',
+    flag: 'CM',
     category: 'Marketing Digital',
     rating: '4,7',
     reviews: 74,
@@ -94,7 +95,7 @@ const entrepreneurs: Entrepreneur[] = [
     id: 'grace',
     name: 'Grâce Nguema',
     country: 'Gabon',
-    flag: '🇬🇦',
+    flag: 'GA',
     category: 'Rédaction',
     rating: '4,9',
     reviews: 63,
@@ -106,6 +107,8 @@ const entrepreneurs: Entrepreneur[] = [
 ];
 
 export default function BusinessPlusScreen() {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader showLogo showAvatar searchType="product" />
@@ -114,10 +117,10 @@ export default function BusinessPlusScreen() {
           <Text style={styles.heroTitle}>
             Business<Text style={styles.plus}>+</Text>
           </Text>
-          <Text style={styles.heroSubtitle}>Trouvez le bon pro, développez sans limites.</Text>
+          <Text style={styles.heroSubtitle}>{t('businessSubtitle')}</Text>
         </View>
 
-        <BusinessSection title="Choisissez un pays" icon="earth-africa" color={colors.primary}>
+        <BusinessSection title={t('chooseCountry')} icon="earth-africa" color={colors.primary}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
             {countries.map((country, index) => (
               <Pressable key={country.code} style={[styles.countryCard, index === 0 && styles.countryCardActive]}>
@@ -128,12 +131,12 @@ export default function BusinessPlusScreen() {
           </ScrollView>
         </BusinessSection>
 
-        <BusinessSection title="Choisissez une catégorie" icon="grip" color={colors.success}>
+        <BusinessSection title={t('chooseCategory')} icon="grip" color={colors.success}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
             {categories.map((category, index) => (
               <Pressable key={category.name} style={[styles.categoryCard, index === 0 && styles.categoryCardActive]}>
                 <FontAwesome6 name={category.icon} size={28} color="#A7F304" />
-                <Text style={styles.categoryName} numberOfLines={2}>{category.name}</Text>
+                <Text style={styles.categoryName} numberOfLines={2}>{t(businessCategoryKey(category.name))}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -142,10 +145,10 @@ export default function BusinessPlusScreen() {
         <View style={styles.entrepreneurHeader}>
           <View style={styles.sectionHeading}>
             <FontAwesome6 name="user-group" size={20} color="#FF7A00" />
-            <Text style={styles.sectionTitle}>Entrepreneurs disponibles</Text>
+            <Text style={styles.sectionTitle}>{t('entrepreneursAvailable')}</Text>
           </View>
           <Pressable style={styles.sortButton}>
-            <Text style={styles.sortText}>Trier</Text>
+            <Text style={styles.sortText}>{t('sort')}</Text>
             <Feather name="sliders" size={20} color={colors.text} />
           </Pressable>
         </View>
@@ -161,6 +164,8 @@ export default function BusinessPlusScreen() {
 }
 
 function BusinessSection({ title, icon, color, children }: { title: string; icon: keyof typeof FontAwesome6.glyphMap; color: string; children: React.ReactNode }) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -169,7 +174,7 @@ function BusinessSection({ title, icon, color, children }: { title: string; icon
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
         <Pressable style={styles.viewAllButton}>
-          <Text style={[styles.viewAllText, { color }]}>Voir tout</Text>
+          <Text style={[styles.viewAllText, { color }]}>{t('viewAll')}</Text>
           <Feather name="chevron-right" size={22} color={color} />
         </Pressable>
       </View>
@@ -179,6 +184,8 @@ function BusinessSection({ title, icon, color, children }: { title: string; icon
 }
 
 function EntrepreneurCard({ entrepreneur }: { entrepreneur: Entrepreneur }) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.proCard}>
       <View style={styles.proMain}>
@@ -192,11 +199,11 @@ function EntrepreneurCard({ entrepreneur }: { entrepreneur: Entrepreneur }) {
             <Text style={styles.proName} numberOfLines={1}>{entrepreneur.name}</Text>
             <FontAwesome6 name="certificate" size={15} color={colors.primary} />
           </View>
-          <Text style={styles.meta} numberOfLines={1}>{entrepreneur.country}  {entrepreneur.flag}  |  {entrepreneur.category}</Text>
+          <Text style={styles.meta} numberOfLines={1}>{entrepreneur.country}  {entrepreneur.flag}  |  {t(businessCategoryKey(entrepreneur.category))}</Text>
           <Text style={styles.rating}>
-            <Text style={styles.star}>★</Text> {entrepreneur.rating} ({entrepreneur.reviews} avis)
+            <Text style={styles.star}>★</Text> {entrepreneur.rating} ({entrepreneur.reviews} {t('reviews')})
           </Text>
-          <Text style={styles.description} numberOfLines={2}>{entrepreneur.description}</Text>
+          <Text style={styles.description} numberOfLines={2}>{t(entrepreneurDescriptionKey(entrepreneur.id))}</Text>
           <View style={styles.tags}>
             {entrepreneur.tags.map((tag) => (
               <Text key={tag} style={styles.tag}>{tag}</Text>
@@ -208,11 +215,11 @@ function EntrepreneurCard({ entrepreneur }: { entrepreneur: Entrepreneur }) {
       <View style={styles.proSide}>
         <View style={styles.verified}>
           <FontAwesome6 name="shield-halved" size={15} color={colors.success} />
-          <Text style={styles.verifiedText}>Vérifié Business+</Text>
+          <Text style={styles.verifiedText}>{t('verifiedBusiness')}</Text>
         </View>
         <View style={styles.missions}>
           <FontAwesome6 name="briefcase" size={14} color={colors.muted} />
-          <Text style={styles.missionText}>{entrepreneur.missions} missions réalisées</Text>
+          <Text style={styles.missionText}>{entrepreneur.missions} {t('completedMissions')}</Text>
         </View>
         <View style={styles.actions}>
           <Pressable style={styles.squareAction}>
@@ -222,12 +229,37 @@ function EntrepreneurCard({ entrepreneur }: { entrepreneur: Entrepreneur }) {
             <Feather name="phone" size={19} color={colors.text} />
           </Pressable>
           <Pressable style={styles.profileButton}>
-            <Text style={styles.profileText}>Voir le profil</Text>
+            <Text style={styles.profileText}>{t('viewProfile')}</Text>
           </Pressable>
         </View>
       </View>
     </View>
   );
+}
+
+function businessCategoryKey(category: string) {
+  const keys: Record<string, string> = {
+    'Développement Web': 'webDevelopment',
+    'Développement Mobile': 'mobileDevelopment',
+    'Design Graphique': 'graphicDesign',
+    'Montage Vidéo': 'videoEditing',
+    'Marketing Digital': 'digitalMarketing',
+    Rédaction: 'writing',
+    Plus: 'more',
+  };
+
+  return keys[category] ?? category;
+}
+
+function entrepreneurDescriptionKey(id: string) {
+  const keys: Record<string, string> = {
+    jean: 'demoEntrepreneurJeanDescription',
+    amina: 'demoEntrepreneurAminaDescription',
+    jonathan: 'demoEntrepreneurJonathanDescription',
+    grace: 'demoEntrepreneurGraceDescription',
+  };
+
+  return keys[id] ?? id;
 }
 
 const styles = StyleSheet.create({

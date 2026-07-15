@@ -2,40 +2,43 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 
 const plans = [
-  { name: 'Gratuit', price: '0 $', features: ['Accès limité', 'Publicités', 'Qualité standard'] },
-  { name: 'Premium', price: '5 $', featured: true, features: ['Accès complet', 'Sans publicités', 'Haute qualité', 'Téléchargement'] },
-  { name: 'Premium+', price: '10 $', features: ['Tout de Premium', 'Multi-écrans', 'Contenus exclusifs'] },
+  { nameKey: 'free', price: '0 $', featureKeys: ['accessLimited', 'ads', 'standardQuality'] },
+  { nameKey: 'premium', price: '5 $', featured: true, featureKeys: ['fullAccess', 'noAds', 'highQuality', 'download'] },
+  { nameKey: 'premiumPlus', price: '10 $', featureKeys: ['allPremium', 'multiScreens', 'exclusiveContent'] },
 ];
 
 export default function SubscriptionScreen() {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>Abonnement</Text>
+        <Text style={styles.title}>{t('subscriptions')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.toggle}>
-          <Text style={styles.toggleActive}>Mensuel</Text>
-          <Text style={styles.toggleText}>Annuel</Text>
+          <Text style={styles.toggleActive}>{t('monthly')}</Text>
+          <Text style={styles.toggleText}>{t('yearly')}</Text>
           <Text style={styles.discount}>-20%</Text>
         </View>
 
         <View style={styles.plans}>
           {plans.map((plan) => (
-            <View key={plan.name} style={[styles.plan, plan.featured && styles.planFeatured]}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <Text style={styles.price}>{plan.price}<Text style={styles.month}>/mois</Text></Text>
+            <View key={plan.nameKey} style={[styles.plan, plan.featured && styles.planFeatured]}>
+              <Text style={styles.planName}>{t(plan.nameKey)}</Text>
+              <Text style={styles.price}>{plan.price}<Text style={styles.month}>{t('perMonth')}</Text></Text>
               <View style={styles.features}>
-                {plan.features.map((feature) => <Text key={feature} style={styles.feature}>✓ {feature}</Text>)}
+                {plan.featureKeys.map((featureKey) => <Text key={featureKey} style={styles.feature}>✓ {t(featureKey)}</Text>)}
               </View>
               <Pressable style={[styles.choose, plan.featured && styles.chooseFeatured]}>
-                <Text style={styles.chooseText}>{plan.featured ? 'Choisir Premium' : 'Choisir'}</Text>
+                <Text style={styles.chooseText}>{plan.featured ? t('choosePremium') : t('choose')}</Text>
               </Pressable>
             </View>
           ))}
@@ -43,7 +46,7 @@ export default function SubscriptionScreen() {
 
         <View style={styles.secure}>
           <Feather name="lock" size={17} color={colors.muted} />
-          <Text style={styles.secureText}>Paiement 100% sécurisé</Text>
+          <Text style={styles.secureText}>{t('securePayment')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

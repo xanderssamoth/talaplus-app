@@ -3,6 +3,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
@@ -10,8 +11,9 @@ import { colors } from '@/constants/theme';
 import { ApiMedia, ApiPost, getMediaChildren, getMediaComments, getRelatedMedia, likeComment } from '@/lib/api';
 
 export default function MediaMoreListScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string; kind: string; title?: string; type?: string }>();
-  const title = params.title ? decodeURIComponent(params.title) : 'Voir plus';
+  const title = params.title ? decodeURIComponent(params.title) : t('viewAll');
   const [mediaItems, setMediaItems] = useState<ApiMedia[]>([]);
   const [comments, setComments] = useState<ApiPost[]>([]);
   const [page, setPage] = useState(1);
@@ -66,7 +68,7 @@ export default function MediaMoreListScreen() {
           contentContainerStyle={styles.list}
           onEndReached={() => load(page + 1)}
           onEndReachedThreshold={0.4}
-          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun commentaire" body="Les commentaires appara\u00eetront ici." />}
+          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noCommentTitle')} body={t('noCommentsBody')} />}
           ListFooterComponent={loading && comments.length ? <LoadingState compact /> : null}
           renderItem={({ item }) => <CommentRow comment={item} />}
         />
@@ -78,7 +80,7 @@ export default function MediaMoreListScreen() {
           contentContainerStyle={styles.list}
           onEndReached={() => load(page + 1)}
           onEndReachedThreshold={0.4}
-          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun m\u00e9dia" body="Les contenus appara\u00eetront ici." />}
+          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noMediaTitle')} body={t('noMediaBody')} />}
           ListFooterComponent={loading && mediaItems.length ? <LoadingState compact /> : null}
           renderItem={({ item }) => <MediaRow media={item} />}
         />

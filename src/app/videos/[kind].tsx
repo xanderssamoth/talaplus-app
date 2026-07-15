@@ -3,32 +3,23 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import { ApiMedia, getMediaByType, getPopularMedia, getRecentMedia } from '@/lib/api';
 
-const channelLabels: Record<string, string> = {
-  film_series: 'Films & Series',
-  comedy: 'Com\u00e9die',
-  music: 'Musique',
-  education: 'Education',
-  business: 'Business',
-  crafts_diy: 'M\u00e9tiers & Bricolage',
-  sports: 'Sport Simul\u00e9',
-  documentary: 'Documentaires',
-};
-
 export default function VideosListScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ kind: string; type?: string; title?: string }>();
   const kind = params.kind ?? 'recent';
   const type = params.type;
   const title = useMemo(() => {
     if (params.title) return decodeURIComponent(params.title);
-    if (type) return channelLabels[type] ?? type;
-    if (kind === 'popular') return 'Vid\u00e9os populaires';
-    return 'Toutes les vid\u00e9os';
-  }, [kind, params.title, type]);
+    if (type) return channelLabel(type, t);
+    if (kind === 'popular') return t('popularVideos');
+    return t('allVideos');
+  }, [kind, params.title, t, type]);
   const [items, setItems] = useState<ApiMedia[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -68,7 +59,7 @@ export default function VideosListScreen() {
         contentContainerStyle={styles.list}
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucune vid\u00e9o" body="Les vid\u00e9os appara\u00eetront ici." />}
+        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noVideoTitle')} body={t('noVideosBody')} />}
         ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
         renderItem={({ item, index }) => kind === 'popular' ? <RankedMedia media={item} rank={index + 1} /> : <MediaRow media={item} />}
       />
@@ -77,25 +68,29 @@ export default function VideosListScreen() {
 }
 
 function RankedMedia({ media, rank }: { media: ApiMedia; rank: number }) {
+  const { t } = useTranslation();
+
   return (
     <Pressable style={styles.rankedCard} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
       {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.rankedImage} /> : <View style={styles.rankedImage} />}
       <Text style={styles.rank}>{rank}</Text>
       <View style={styles.rankedBody}>
         <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
-        <Text style={styles.mediaMeta}>{channelLabels[media.type ?? ''] ?? media.type ?? 'TALA+'}</Text>
+        <Text style={styles.mediaMeta}>{media.type ? channelLabel(media.type, t) : 'TALA+'}</Text>
       </View>
     </Pressable>
   );
 }
 
 function MediaRow({ media }: { media: ApiMedia }) {
+  const { t } = useTranslation();
+
   return (
     <Pressable style={styles.mediaRow} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
       {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.mediaImage} /> : <View style={styles.mediaImage} />}
       <View style={styles.mediaBody}>
         <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
-        <Text style={styles.mediaMeta}>{media.category || channelLabels[media.type ?? ''] || 'TALA+'}</Text>
+        <Text style={styles.mediaMeta}>{media.category || (media.type ? channelLabel(media.type, t) : 'TALA+')}</Text>
       </View>
       <FontAwesome name="play-circle" size={28} color={colors.text} />
     </Pressable>
@@ -117,3 +112,18 @@ const styles = StyleSheet.create({
   mediaTitle: { color: colors.text, fontWeight: '900' },
   mediaMeta: { color: colors.muted, marginTop: 4, fontSize: 12 },
 });
+
+function channelLabel(type: string, t: (key: string) => string) {
+  const labels: Record<string, string> = {
+    film_series: t('filmsAndSeries'),
+    comedy: t('comedy'),
+    music: t('music'),
+    education: t('education'),
+    business: t('business'),
+    crafts_diy: t('crafts'),
+    sports: t('simulatedSport'),
+    documentary: t('documentaries'),
+  };
+
+  return labels[type] ?? type;
+}

@@ -94,7 +94,7 @@ export default function ProductDetailsScreen() {
 
         {!!comments.length && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Commentaires</Text>
+            <Text style={styles.infoTitle}>{t('comments')}</Text>
             {comments.slice(0, 5).map((comment) => (
               <View key={comment.id} style={styles.commentRow}>
                 {comment.avatarUrl ? <Image source={{ uri: comment.avatarUrl }} style={styles.commentAvatar} /> : <View style={styles.commentAvatar}><Text style={styles.commentAvatarText}>{comment.author.charAt(0)}</Text></View>}
@@ -114,7 +114,7 @@ export default function ProductDetailsScreen() {
         <Text style={styles.bottomPrice}>{product.currency} {discounted.toFixed(2)}</Text>
         <Pressable style={styles.cartButton}>
           <Feather name="shopping-cart" size={21} color={colors.text} />
-          <Text style={styles.cartText}>Ajouter au panier</Text>
+          <Text style={styles.cartText}>{t('addToCart')}</Text>
         </Pressable>
       </View>
       <ShareSheet visible={shareVisible} entity="product" entityId={product.id} onClose={() => setShareVisible(false)} />

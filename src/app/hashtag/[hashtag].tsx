@@ -3,6 +3,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
@@ -12,6 +13,7 @@ import { ApiMedia, ApiPost, getHashtagEntities } from '@/lib/api';
 type Tab = 'media' | 'comments';
 
 export default function HashtagEntitiesScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ hashtag: string }>();
   const hashtag = useMemo(() => decodeURIComponent(params.hashtag ?? '').replace(/^#/, ''), [params.hashtag]);
   const [activeTab, setActiveTab] = useState<Tab>('media');
@@ -46,8 +48,8 @@ export default function HashtagEntitiesScreen() {
       </View>
 
       <View style={styles.tabs}>
-        <TabButton label="Vid\u00e9os" active={activeTab === 'media'} onPress={() => setActiveTab('media')} />
-        <TabButton label="Commentaires" active={activeTab === 'comments'} onPress={() => setActiveTab('comments')} />
+        <TabButton label={t('video')} active={activeTab === 'media'} onPress={() => setActiveTab('media')} />
+        <TabButton label={t('comments')} active={activeTab === 'comments'} onPress={() => setActiveTab('comments')} />
       </View>
 
       {activeTab === 'media' ? (
@@ -57,7 +59,7 @@ export default function HashtagEntitiesScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           contentContainerStyle={styles.grid}
-          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucune vid\u00e9o" body="Les vid\u00e9os li\u00e9es \u00e0 ce hashtag appara\u00eetront ici." />}
+          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noVideoTitle')} body={t('hashtagVideosBody')} />}
           renderItem={({ item }) => <MediaCard media={item} />}
         />
       ) : (
@@ -66,7 +68,7 @@ export default function HashtagEntitiesScreen() {
           data={comments}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title="Aucun commentaire" body="Les commentaires li\u00e9s \u00e0 ce hashtag appara\u00eetront ici." />}
+          ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noCommentTitle')} body={t('hashtagCommentsBody')} />}
           renderItem={({ item }) => <CommentCard post={item} />}
         />
       )}
@@ -93,8 +95,9 @@ function MediaCard({ media }: { media: ApiMedia }) {
 }
 
 function CommentCard({ post }: { post: ApiPost }) {
+  const { t } = useTranslation();
   const icon = post.targetType === 'product' ? 'bag-shopping' : post.targetType === 'media' ? 'clapperboard' : 'message';
-  const label = post.targetType === 'product' ? 'Produit' : post.targetType === 'media' ? 'Vid\u00e9o' : 'Commentaire';
+  const label = post.targetType === 'product' ? t('product') : post.targetType === 'media' ? t('video') : t('comment');
 
   return (
     <View style={styles.commentCard}>

@@ -65,7 +65,7 @@ export default function HomeScreen() {
                 <Text style={styles.heroSubtitle} numberOfLines={2}>{hero.description}</Text>
                 <Pressable style={styles.watchButton} onPress={() => router.push(`/mediaDetails/${hero.id}`)}>
                   <FontAwesome name="play" size={13} color={colors.background} />
-                  <Text style={styles.watchText}>Voir</Text>
+                  <Text style={styles.watchText}>{t('watch')}</Text>
                 </Pressable>
               </View>
             </ImageBackground>
@@ -144,6 +144,7 @@ function SeeAllTile({ onPress }: { onPress: () => void }) {
 }
 
 function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost; menuOpen: boolean; onToggleMenu: () => void; onCloseMenu: () => void }) {
+  const { t } = useTranslation();
   const [shareVisible, setShareVisible] = useState(false);
   const mediaFiles = post.files.length ? post.files : post.image ? [{ id: `${post.id}-image`, url: post.image, type: 'photo' }] : [];
 
@@ -172,7 +173,7 @@ function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost
         {menuOpen && (
           <Pressable style={styles.reportMenu} onPress={onCloseMenu}>
             <Feather name="flag" size={15} color={colors.danger} />
-            <Text style={styles.reportText}>Signaler</Text>
+            <Text style={styles.reportText}>{t('report')}</Text>
           </Pressable>
         )}
       </View>
@@ -232,6 +233,7 @@ function LinkedPostText({ text }: { text: string }) {
 }
 
 function PostMediaGrid({ files }: { files: { id: string; url: string; type: string }[] }) {
+  const { t } = useTranslation();
   const visibleFiles = files.slice(0, 4);
 
   return (
@@ -246,7 +248,7 @@ function PostMediaGrid({ files }: { files: { id: string; url: string; type: stri
             ) : (
               <View style={styles.postVideoTile}>
                 <Feather name="play-circle" size={34} color={colors.text} />
-                <Text style={styles.postVideoText}>Video</Text>
+                <Text style={styles.postVideoText}>{t('video')}</Text>
               </View>
             )}
             {index === 3 && files.length > 4 && (

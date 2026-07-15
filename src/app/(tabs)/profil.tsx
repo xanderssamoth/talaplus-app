@@ -45,7 +45,7 @@ export default function ProfileScreen() {
           )}
           <View style={styles.nameBlock}>
             <Text style={styles.name}>{user.firstname} {user.lastname.charAt(0)}.</Text>
-            <Text style={styles.premium}>Premium</Text>
+            <Text style={styles.premium}>{t('premium')}</Text>
             <Text style={styles.member}>{t('memberSince')}</Text>
           </View>
         </View>
