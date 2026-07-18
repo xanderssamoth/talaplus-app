@@ -3829,7 +3829,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/ApiResource"
+                                                "$ref": "#/components/schemas/CategoryResource"
                                             }
                                         },
                                         "ad": {
@@ -4597,7 +4597,10 @@
                                             "type": "string"
                                         },
                                         "data": {
-                                            "type": "string"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ApiResource"
+                                            }
                                         },
                                         "ad": {
                                             "type": "null"
@@ -4616,6 +4619,51 @@
                                         "ad",
                                         "lastPage",
                                         "count"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "data": {
+                                                    "type": "null"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "data",
+                                                "message"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "message": {
+                                                    "type": "null"
+                                                }
+                                            },
+                                            "required": [
+                                                "success",
+                                                "message"
+                                            ]
+                                        }
                                     ]
                                 }
                             }
@@ -4646,14 +4694,6 @@
                                             "null"
                                         ]
                                     },
-                                    "type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "app_info",
-                                            "post",
-                                            "comment"
-                                        ]
-                                    },
                                     "for_entity": {
                                         "type": [
                                             "string",
@@ -4664,6 +4704,35 @@
                                             "media",
                                             "product",
                                             "message"
+                                        ]
+                                    },
+                                    "allow_comment": {
+                                        "type": "boolean"
+                                    },
+                                    "allow_share": {
+                                        "type": "boolean"
+                                    },
+                                    "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "followers",
+                                            "private"
+                                        ]
+                                    },
+                                    "publish_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "app_info",
+                                            "post",
+                                            "comment"
                                         ]
                                     },
                                     "media_id": {
@@ -4866,14 +4935,6 @@
                                             "null"
                                         ]
                                     },
-                                    "type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "app_info",
-                                            "post",
-                                            "comment"
-                                        ]
-                                    },
                                     "for_entity": {
                                         "type": [
                                             "string",
@@ -4884,6 +4945,35 @@
                                             "media",
                                             "product",
                                             "message"
+                                        ]
+                                    },
+                                    "allow_comment": {
+                                        "type": "boolean"
+                                    },
+                                    "allow_share": {
+                                        "type": "boolean"
+                                    },
+                                    "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "followers",
+                                            "private"
+                                        ]
+                                    },
+                                    "publish_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "app_info",
+                                            "post",
+                                            "comment"
                                         ]
                                     },
                                     "media_id": {
@@ -5435,6 +5525,36 @@
                                             "qr_code"
                                         ]
                                     },
+                                    "mime_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "file_size": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "width": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "height": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "duration": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
                                     "user_id": {
                                         "type": [
                                             "integer",
@@ -5612,6 +5732,36 @@
                                             "id_card",
                                             "ad",
                                             "qr_code"
+                                        ]
+                                    },
+                                    "mime_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "file_size": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "width": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "height": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "duration": {
+                                        "type": [
+                                            "integer",
+                                            "null"
                                         ]
                                     },
                                     "user_id": {
@@ -15531,6 +15681,125 @@
                 }
             }
         },
+        "/v1/user/entrepreneurs": {
+            "post": {
+                "operationId": "user.entrepreneurs",
+                "tags": [
+                    "User"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "category_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "country": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "city": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "category_ids": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "categories": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "countries": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "cities": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Return JSON response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserResource"
+                                            }
+                                        },
+                                        "ad": {
+                                            "type": "null"
+                                        },
+                                        "lastPage": {
+                                            "type": "integer"
+                                        },
+                                        "count": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data",
+                                        "ad",
+                                        "lastPage",
+                                        "count"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/user/username/{username}": {
             "get": {
                 "operationId": "user.findByUsername",
@@ -16649,6 +16918,12 @@
                                         ],
                                         "maxLength": 255
                                     },
+                                    "about_me": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
                                     "email": {
                                         "type": [
                                             "string",
@@ -17051,6 +17326,12 @@
                                             "null"
                                         ]
                                     },
+                                    "about_me": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
                                     "gender": {
                                         "type": [
                                             "string",
@@ -17352,6 +17633,11 @@
                 "type": "array",
                 "items": {},
                 "title": "ApiResource"
+            },
+            "CategoryResource": {
+                "type": "array",
+                "items": {},
+                "title": "CategoryResource"
             },
             "ChatRequest": {
                 "type": "object",
