@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/AppHeader';
 import { colors } from '@/constants/theme';
 
-const channels = [
+const channels: { id: string; titleKey: string; subtitleKey?: string; icon: string; color: string }[] = [
   { id: 'films', titleKey: 'filmsAndSeries', icon: 'movie-open', color: '#2677D7' },
   { id: 'comedie', titleKey: 'comedy', icon: 'emoticon-excited', color: '#F36A25' },
   { id: 'musique', titleKey: 'music', icon: 'music', color: '#7D35D8' },
@@ -15,6 +15,8 @@ const channels = [
   { id: 'metiers', titleKey: 'crafts', icon: 'tools', color: '#287AC0' },
   { id: 'sport', titleKey: 'simulatedSport', icon: 'soccer', color: '#37A33B' },
   { id: 'documentaires', titleKey: 'documentaries', icon: 'bag-suitcase', color: '#127B8F' },
+  { id: 'enfants', titleKey: 'kids', subtitleKey: 'filmsAndSeries', icon: 'human-male-female-child', color: '#E93472' },
+  { id: 'premium-vip', titleKey: 'premiumVip', subtitleKey: 'exclusiveContent', icon: 'shield-crown', color: '#3D1E6D' },
 ];
 
 export default function ChannelsScreen() {
@@ -28,6 +30,7 @@ export default function ChannelsScreen() {
           <Pressable key={item.id} style={[styles.tile, { backgroundColor: item.color }]} onPress={() => router.push(`/channel/${item.id}`)}>
             <MaterialCommunityIcons name={item.icon as keyof typeof MaterialCommunityIcons.glyphMap} size={42} color={colors.text} />
             <Text style={styles.tileText}>{t(item.titleKey)}</Text>
+            {item.subtitleKey && <Text style={styles.tileSubtitle}>{t(item.subtitleKey)}</Text>}
           </Pressable>
         ))}
 
@@ -55,6 +58,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   tileText: { color: colors.text, fontWeight: '900', textAlign: 'center' },
+  tileSubtitle: { color: colors.text, opacity: 0.86, fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: -6 },
   aiCard: {
     width: '100%',
     flexDirection: 'row',

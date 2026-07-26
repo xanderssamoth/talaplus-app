@@ -86,6 +86,13 @@ export default function ProductDetailsScreen() {
           <Text style={styles.price}>{product.currency} {discounted.toFixed(2)}</Text>
           {!!product.reductionRate && <Text style={styles.oldPrice}>{product.currency} {product.price.toFixed(2)}</Text>}
         </View>
+        {!!product.reductionRate && (
+          <View style={styles.promoBadge}>
+            <Text style={styles.promoText}>-{product.reductionRate}%</Text>
+            <Text style={styles.promoAmount}>{product.currency} {discounted.toFixed(2)}</Text>
+            {!!product.reductionEnd && <Text style={styles.promoDate}>{t('until')} {product.reductionEnd}</Text>}
+          </View>
+        )}
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>{t('description')}</Text>
@@ -135,6 +142,10 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18 },
   price: { color: colors.text, fontSize: 32, fontWeight: '900' },
   oldPrice: { color: colors.muted, textDecorationLine: 'line-through', fontSize: 20 },
+  promoBadge: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 9, marginTop: 12, backgroundColor: 'rgba(246,161,40,0.18)', borderWidth: 1, borderColor: '#F6A128' },
+  promoText: { color: '#F6A128', fontWeight: '900' },
+  promoAmount: { color: colors.text, fontWeight: '900' },
+  promoDate: { color: colors.muted, fontSize: 12, fontWeight: '800' },
   infoCard: { borderRadius: 8, padding: 18, marginTop: 24, backgroundColor: colors.panel },
   infoTitle: { color: colors.text, fontSize: 20, fontWeight: '900' },
   description: { color: colors.text, lineHeight: 24, marginTop: 12 },

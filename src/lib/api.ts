@@ -36,6 +36,8 @@ export type ApiProduct = {
   currency: string;
   category?: string;
   reductionRate: number;
+  reductionStart?: string;
+  reductionEnd?: string;
   rating?: number;
 };
 
@@ -107,6 +109,36 @@ export type ApiUserProfile = {
   username: string;
   avatarUrl: string;
   coverUrl: string;
+  country?: string;
+  city?: string;
+  category?: string;
+  rating?: number;
+  reviews?: number;
+  description?: string;
+};
+
+export type ApiConversation = {
+  key: string;
+  kind: 'user' | 'group';
+  title: string;
+  subtitle: string;
+  avatarUrl?: string;
+  peerUserId?: string;
+  groupId?: string;
+  unreadCount: number;
+  time?: string;
+  lastMessage?: ApiMessage;
+};
+
+export type ApiMessage = {
+  id: string;
+  content: string;
+  type: string;
+  status: 'read' | 'unread';
+  userId: string;
+  addresseeUserId?: string;
+  addresseeGroupId?: string;
+  createdAt?: string;
 };
 
 export type ApiPayment = {
@@ -268,6 +300,29 @@ function pickVideo(source: Record<string, unknown>) {
   return '';
 }
 
+function appendFormValue(form: FormData, key: string, value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendFormValue(form, `${key}[]`, item));
+    return;
+  }
+
+  form.append(key, String(value));
+}
+
+function appendFormFiles(form: FormData, files?: unknown[]) {
+  files?.forEach((file) => {
+    if (!file || typeof file !== 'object') {
+      return;
+    }
+
+    form.append('files[]', file as Blob);
+  });
+}
+
 function pickUserName(source: Record<string, unknown>) {
   const firstname = pickString(source, ['firstname', 'first_name']);
   const lastname = pickString(source, ['lastname', 'surname', 'last_name']);
@@ -415,6 +470,8 @@ export function normalizeProduct(item: unknown): ApiProduct {
     currency: pickString(source, ['currency', 'devise'], 'USD'),
     category: pickLocalizedString(category ?? source, ['name', 'category_name']),
     reductionRate: pickNumber(source, ['reduction_rate', 'discount', 'discount_rate']),
+    reductionStart: pickString(source, ['price_reduction_start', 'reduction_start']),
+    reductionEnd: pickString(source, ['price_reduction_end', 'reduction_end']),
     rating: pickNumber(source, ['rating', 'rate'], 4.5),
   };
 }
@@ -721,8 +778,48 @@ function normalizePayment(item: unknown): ApiPayment {
   };
 }
 
+function normalizeMessage(item: unknown): ApiMessage {
+  const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+
+  return {
+    id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
+    content: pickLocalizedString(source, ['message_content', 'content', 'message', 'body', 'file_description']),
+    type: pickString(source, ['type'], 'text'),
+    status: pickString(source, ['status'], 'unread') === 'read' ? 'read' : 'unread',
+    userId: pickString(source, ['user_id', 'userId']),
+    addresseeUserId: pickString(source, ['addressee_user_id', 'addresseeUserId']),
+    addresseeGroupId: pickString(source, ['addressee_group_id', 'addresseeGroupId']),
+    createdAt: pickString(source, ['created_at_explicit', 'created_at', 'createdAt']),
+  };
+}
+
+function normalizeConversation(item: unknown): ApiConversation {
+  const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+  const lastMessage = normalizeMessage(pickObject(source, ['last_message', 'lastMessage']) ?? source);
+  const key = pickString(source, ['conversation_key', 'conversationKey'], lastMessage.addresseeGroupId ? `group:${lastMessage.addresseeGroupId}` : `user:${lastMessage.addresseeUserId || lastMessage.userId}`);
+  const kind = key.startsWith('group:') || lastMessage.addresseeGroupId ? 'group' : 'user';
+  const addresseeUser = pickObject(source, ['addressee_user', 'addresseeUser']) ?? pickObject(pickObject(source, ['last_message', 'lastMessage']) ?? {}, ['addressee_user', 'addresseeUser']);
+  const user = pickObject(source, ['user']) ?? pickObject(pickObject(source, ['last_message', 'lastMessage']) ?? {}, ['user']);
+  const group = pickObject(source, ['addressee_group', 'addresseeGroup']) ?? pickObject(pickObject(source, ['last_message', 'lastMessage']) ?? {}, ['addressee_group', 'addresseeGroup']);
+  const peer = kind === 'group' ? group : addresseeUser ?? user;
+
+  return {
+    key,
+    kind,
+    title: kind === 'group' ? pickLocalizedString(peer ?? source, ['name', 'group_name', 'title'], 'Groupe') : userFullName(peer ?? source),
+    subtitle: lastMessage.content,
+    avatarUrl: pickImage(peer ?? source),
+    peerUserId: kind === 'user' ? key.replace('user:', '') : undefined,
+    groupId: kind === 'group' ? key.replace('group:', '') : undefined,
+    unreadCount: pickNumber(source, ['unread_count', 'unreadCount']),
+    time: lastMessage.createdAt,
+    lastMessage,
+  };
+}
+
 function normalizeUserProfile(item: unknown): ApiUserProfile {
   const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+  const category = pickObject(source, ['category']);
 
   return {
     id: pickString(source, ['id', 'uuid']),
@@ -730,6 +827,12 @@ function normalizeUserProfile(item: unknown): ApiUserProfile {
     username: pickString(source, ['username', 'email']),
     avatarUrl: pickString(source, ['avatar_url', 'avatar']),
     coverUrl: pickString(source, ['cover_url', 'cover']),
+    country: pickString(source, ['country']),
+    city: pickString(source, ['city']),
+    category: pickLocalizedString(category ?? source, ['category_name', 'name', 'business_category', 'profession']),
+    rating: pickNumber(source, ['rating', 'rate'], 4.5),
+    reviews: pickNumber(source, ['reviews', 'reviews_count', 'ratings_count']),
+    description: pickLocalizedString(source, ['description', 'bio', 'about']),
   };
 }
 
@@ -757,6 +860,17 @@ export function getUserMedia(userId: string, page?: number, type?: string) {
 
 export function getMediaByType(type: string, page?: number) {
   return list(withQuery('/v1/media/filter/list', withCurrentUser({ type, page })), normalizeMedia);
+}
+
+export function getMediaByFlag(flag: 'for_youth' | 'premium', page?: number) {
+  return list(withQuery('/v1/media/filter/list', withCurrentUser({
+    for_youth: flag === 'for_youth' ? 1 : undefined,
+    is_free: flag === 'premium' ? 0 : undefined,
+    page,
+  })), normalizeMedia).then((result) => ({
+    ...result,
+    items: result.items.filter((item) => flag === 'for_youth' ? item.forYouth : item.isFree === false),
+  }));
 }
 
 export function getMediaChildren(mediaId: string, page?: number) {
@@ -928,12 +1042,77 @@ export function createMedia(payload: Record<string, unknown> | FormData) {
   });
 }
 
-export function createProduct(payload: Record<string, unknown>) {
-  return apiRequest('/v1/product', { method: 'POST', body: JSON.stringify(payload) });
+export function createProduct(payload: Record<string, unknown> | FormData) {
+  return apiRequest('/v1/product', {
+    method: 'POST',
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+  });
 }
 
-export function createPost(payload: Record<string, unknown>) {
-  return apiRequest('/v1/comment', { method: 'POST', body: JSON.stringify(payload) });
+export function createPost(payload: Record<string, unknown> | FormData) {
+  return apiRequest('/v1/comment', {
+    method: 'POST',
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+  });
+}
+
+export function buildPostForm(payload: Record<string, unknown>, files?: unknown[]) {
+  const form = new FormData();
+  Object.entries(payload).forEach(([key, value]) => appendFormValue(form, key, value));
+  appendFormFiles(form, files);
+  return form;
+}
+
+export function buildProductForm(payload: Record<string, unknown>, files?: unknown[]) {
+  const form = new FormData();
+  Object.entries(payload).forEach(([key, value]) => appendFormValue(form, key, value));
+  appendFormFiles(form, files);
+  return form;
+}
+
+export async function sendAiMessage(message: string) {
+  const response = await apiRequest<unknown>('/v1/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ message }),
+  });
+  const data = (response.data && typeof response.data === 'object' ? response.data : {}) as Record<string, unknown>;
+  return pickLocalizedString(data, ['answer', 'response', 'message', 'content', 'text'], typeof response.data === 'string' ? response.data : '');
+}
+
+export function getConversations(page?: number) {
+  return list(withQuery('/v1/message/conversation', withCurrentUser({ page })), normalizeConversation);
+}
+
+export function sendMessage(payload: { content: string; addresseeUserId?: string; addresseeGroupId?: string }) {
+  return apiRequest<unknown>('/v1/message', {
+    method: 'POST',
+    body: JSON.stringify({
+      message_content: payload.content,
+      type: 'text',
+      status: 'unread',
+      user_id: currentUserParam(),
+      addressee_user_id: payload.addresseeUserId,
+      addressee_group_id: payload.addresseeGroupId,
+    }),
+  }).then((response) => normalizeMessage(response.data));
+}
+
+export function getEntrepreneurs(filters: { categoryIds?: string[]; countries?: string[]; cities?: string[]; page?: number } = {}) {
+  const numericCategoryIds = filters.categoryIds?.filter((id) => !Number.isNaN(Number(id))).map(Number);
+
+  return apiRequest<unknown>('/v1/user/entrepreneurs', {
+    method: 'POST',
+    body: JSON.stringify({
+      category_ids: numericCategoryIds?.length ? numericCategoryIds : undefined,
+      categories: numericCategoryIds?.length ? numericCategoryIds : undefined,
+      countries: filters.countries,
+      cities: filters.cities,
+      page: filters.page,
+    }),
+  }).then((response) => {
+    const items = asArray(response.data).map(normalizeUserProfile);
+    return { items, lastPage: response.lastPage ?? 1, count: response.count ?? items.length };
+  });
 }
 
 export function likeMedia(mediaId: string, action: 'add' | 'remove' = 'add') {

@@ -8,7 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import SectionTitle from '@/components/SectionTitle';
 import { colors } from '@/constants/theme';
-import { ApiMedia, getRecentMedia } from '@/lib/api';
+import { ApiMedia, getMediaByFlag, getMediaByType } from '@/lib/api';
 
 const labelKeys: Record<string, string> = {
   films: 'filmsAndSeries',
@@ -19,6 +19,8 @@ const labelKeys: Record<string, string> = {
   metiers: 'crafts',
   sport: 'simulatedSport',
   documentaires: 'documentaries',
+  enfants: 'kids',
+  'premium-vip': 'premiumVip',
 };
 
 const typeByChannel: Record<string, string> = {
@@ -42,8 +44,15 @@ export default function ChannelDetailsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRecentMedia().then(({ items }) => setMedia(items)).catch(() => setMedia([])).finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    const request = channelId === 'enfants'
+      ? getMediaByFlag('for_youth')
+      : channelId === 'premium-vip'
+        ? getMediaByFlag('premium')
+        : getMediaByType(type);
+
+    request.then(({ items }) => setMedia(items)).catch(() => setMedia([])).finally(() => setLoading(false));
+  }, [channelId, type]);
 
   return (
     <SafeAreaView style={styles.container}>

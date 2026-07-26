@@ -22,6 +22,9 @@ type UserPayload = {
   password?: string | null;
   avatar_url?: string | null;
   avatar?: string | null;
+  api_token?: string | null;
+  token?: string | null;
+  access_token?: string | null;
 };
 
 type SignUpResponseData = {
@@ -38,6 +41,7 @@ export type AppUser = {
   username: string;
   password?: string;
   avatar_url: string;
+  token?: string;
 };
 
 export class ApiError extends Error {
@@ -114,6 +118,7 @@ function normalizeUser(payload: unknown): AppUser {
     username,
     password: user.password ?? undefined,
     avatar_url: user.avatar_url ?? user.avatar ?? '',
+    token: user.api_token ?? user.token ?? user.access_token ?? undefined,
   };
 }
 
@@ -124,6 +129,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}) {
     Accept: 'application/json',
     ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
     'X-localization': i18n.language || 'fr',
+    ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
     ...init.headers,
   };
 

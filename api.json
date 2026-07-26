@@ -4678,7 +4678,7 @@
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "type": "object",
                                 "properties": {
@@ -4752,6 +4752,14 @@
                                             "integer",
                                             "null"
                                         ]
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "description": "Fichiers a envoyer avec la requete multipart/form-data.",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 }
                             }
@@ -9211,10 +9219,34 @@
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "type": "object",
                                 "properties": {
+                                    "file_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "file_description": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "files": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary",
+                                            "contentMediaType": "application/octet-stream",
+                                            "maxLength": 10240
+                                        }
+                                    },
                                     "message_content": {
                                         "type": [
                                             "string",
@@ -9293,7 +9325,7 @@
                                             "type": "string"
                                         },
                                         "data": {
-                                            "type": "string"
+                                            "$ref": "#/components/schemas/MessageResource"
                                         },
                                         "ad": {
                                             "type": "null"
@@ -9316,6 +9348,9 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -12740,7 +12775,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "type": "object",
                                 "properties": {
@@ -12819,6 +12854,14 @@
                                             "integer",
                                             "null"
                                         ]
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "description": "Fichiers a envoyer avec la requete multipart/form-data.",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "required": [
@@ -17840,6 +17883,11 @@
                 "type": "array",
                 "items": {},
                 "title": "MediaResource"
+            },
+            "MessageResource": {
+                "type": "array",
+                "items": {},
+                "title": "MessageResource"
             },
             "NotificationResource": {
                 "type": "array",
