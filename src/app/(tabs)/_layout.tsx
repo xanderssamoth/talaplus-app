@@ -75,6 +75,8 @@ export default function TabsLayout() {
         <Pressable style={styles.fabBackdrop} onPress={() => setFabOpen(false)}>
           <View style={styles.fabMenu}>
             <FabAction icon="clapperboard" label={t('newVideo')} onPress={() => { setFabOpen(false); router.push('/create/video'); }} />
+            <FabAction icon="music" label={t('newAudio')} onPress={() => { setFabOpen(false); router.push('/create/audio'); }} />
+            <FabAction icon="message" label={t('newMessage')} onPress={() => { setFabOpen(false); router.push('/messages/new'); }} />
             <FabAction icon="pen-to-square" label={t('newPost')} onPress={() => { setFabOpen(false); router.push('/create/post'); }} />
             <FabAction icon="bag-shopping" label={t('newProduct')} onPress={() => { setFabOpen(false); router.push('/create/product'); }} />
           </View>

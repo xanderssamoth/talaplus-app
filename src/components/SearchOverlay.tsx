@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 import { ApiMedia, ApiProduct, searchApi } from '@/lib/api';
 
 type SearchOverlayProps = {
@@ -76,7 +77,7 @@ export default function SearchOverlay({ visible, onClose, type = 'media' }: Sear
             const isProduct = 'name' in item;
             return (
               <Pressable key={item.id} style={styles.result} onPress={() => openItem(item)}>
-                {(isProduct ? item.image : item.thumbnail) ? <Image source={{ uri: isProduct ? item.image : item.thumbnail }} style={styles.thumbnail} /> : <View style={styles.thumbnail} />}
+                {isProduct ? ((item.image) ? <Image source={{ uri: item.image }} style={styles.thumbnail} /> : <View style={styles.thumbnail} />) : <MediaCover uri={item.thumbnail} isAudio={item.isAudio} style={styles.thumbnail} />}
                 <View style={styles.resultText}>
                   <Text style={styles.title}>{isProduct ? item.name : item.title}</Text>
                   <Text style={styles.meta}>{isProduct ? item.category : item.category || item.type}</Text>

@@ -25,6 +25,7 @@ export type ApiMedia = {
   isFree?: boolean;
   price?: number;
   forYouth?: boolean;
+  isAudio?: boolean;
 };
 
 export type ApiProduct = {
@@ -454,6 +455,7 @@ export function normalizeMedia(item: unknown): ApiMedia {
     isFree: pickBoolean(source, ['is_free'], true),
     price: pickNumber(source, ['price']),
     forYouth: pickBoolean(source, ['for_youth']),
+    isAudio: pickBoolean(source, ['is_audio', 'isAudio']),
   };
 }
 
@@ -1081,6 +1083,29 @@ export async function sendAiMessage(message: string) {
 
 export function getConversations(page?: number) {
   return list(withQuery('/v1/message/conversation', withCurrentUser({ page })), normalizeConversation);
+}
+
+export async function getConversationMessages(conversation: ApiConversation) {
+  const path = conversation.kind === 'group'
+    ? withQuery('/v1/message/conversation/group', { user_id: currentUserParam(), group_id: conversation.groupId })
+    : withQuery('/v1/message/conversation/users', { user_id: currentUserParam(), addressee_user_id: conversation.peerUserId });
+  const response = await apiRequest<unknown>(path);
+  const data = response.data;
+  const source = data && typeof data === 'object' && !Array.isArray(data) ? data as Record<string, unknown> : null;
+  return asArray(source?.messages ?? data).map(normalizeMessage).reverse();
+}
+
+export type MessageRecipient = { id: string; kind: 'user' | 'group'; title: string; subtitle?: string; avatarUrl?: string };
+
+export async function getMessageRecipients() {
+  const [connections, groups] = await Promise.all([
+    getUserConnections().catch(() => ({ items: [] as ApiUserProfile[] })),
+    list(withQuery(`/v1/group/user/${encodeURIComponent(currentUserParam())}`, {}), (item) => item as Record<string, unknown>).catch(() => ({ items: [] as Record<string, unknown>[] })),
+  ]);
+  return [
+    ...connections.items.map((user): MessageRecipient => ({ id: user.id, kind: 'user', title: user.name, subtitle: `@${user.username}`, avatarUrl: user.avatarUrl })),
+    ...groups.items.map((group): MessageRecipient => ({ id: pickString(group, ['id', 'uuid']), kind: 'group', title: pickLocalizedString(group, ['group_name', 'name', 'title'], 'Groupe'), subtitle: pickLocalizedString(group, ['description', 'group_description']), avatarUrl: pickImage(group) })),
+  ];
 }
 
 export function sendMessage(payload: { content: string; addresseeUserId?: string; addresseeGroupId?: string }) {

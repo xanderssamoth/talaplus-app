@@ -78,7 +78,7 @@ export default function ProductDetailsScreen() {
           </View>
         </View>
 
-        {product.image ? <Image source={{ uri: product.image }} style={styles.image} /> : <View style={styles.image} />}
+        <Image source={product.image ? { uri: product.image } : require('../../../assets/covers/cover-product.png')} style={styles.image} />
         <Text style={styles.title}>{product.name}</Text>
         {!!product.category && <Text style={styles.category}>{product.category}</Text>}
         <Text style={styles.rating}>★ {product.rating?.toFixed(1) ?? '4.5'}</Text>

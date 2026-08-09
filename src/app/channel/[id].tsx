@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import SectionTitle from '@/components/SectionTitle';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 import { ApiMedia, getMediaByFlag, getMediaByType } from '@/lib/api';
 
 const labelKeys: Record<string, string> = {
@@ -73,7 +74,7 @@ export default function ChannelDetailsScreen() {
               <View style={styles.topRow}>
                 {media.slice(0, 3).map((item, index) => (
                   <Pressable key={item.id} style={styles.topCard} onPress={() => router.push(`/mediaDetails/${item.id}`)}>
-                    {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.topImage} /> : <View style={styles.topImage} />}
+                    <MediaCover uri={item.thumbnail} isAudio={item.isAudio} style={styles.topImage} />
                     <Text style={styles.rank}>{index + 1}</Text>
                     <Text style={styles.topTitle} numberOfLines={1}>{item.title}</Text>
                   </Pressable>
@@ -83,7 +84,7 @@ export default function ChannelDetailsScreen() {
               <SectionTitle title={t('latest')} action={t('viewAll')} onActionPress={() => router.push({ pathname: '/videos/recent', params: { type, title: t('latest') } })} />
               {media.slice(3, 9).map((item) => (
                 <Pressable key={item.id} style={styles.song} onPress={() => router.push(`/mediaDetails/${item.id}`)}>
-                  {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.songImage} /> : <View style={styles.songImage} />}
+                  <MediaCover uri={item.thumbnail} isAudio={item.isAudio} style={styles.songImage} />
                   <View style={styles.songBody}>
                     <Text style={styles.songTitle}>{item.title}</Text>
                     <Text style={styles.songArtist}>{item.category || 'TALA+'}</Text>

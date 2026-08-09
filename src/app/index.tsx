@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import BrandLogo from '@/components/BrandLogo';
 import { colors } from '@/constants/theme';
+import { hasActiveSession } from '@/lib/session';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
@@ -13,6 +14,12 @@ export default function WelcomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Android back may reveal this route.  A valid session must always lead
+      // back to the application; only the Profile logout clears it.
+      if (hasActiveSession()) {
+        router.replace('/(tabs)');
+        return;
+      }
       setIsNavigating(false);
       Animated.timing(logoProgress, {
         toValue: 0,

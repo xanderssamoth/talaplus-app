@@ -53,8 +53,13 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
 
   const openExternal = async (url: string) => {
     try {
-      await Linking.openURL(url);
       onClose();
+      // Close the modal before handing control to another application. This
+      // prevents a stale modal/navigation state when Android resumes TALA+.
+      if (!(await Linking.canOpenURL(url))) {
+        throw new Error('Unsupported share target');
+      }
+      await Linking.openURL(url);
     } catch {
       Alert.alert(t('unavailableAction'), t('unavailableAction'));
     }

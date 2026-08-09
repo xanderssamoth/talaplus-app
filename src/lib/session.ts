@@ -223,3 +223,9 @@ export function signOut() {
 export function getCurrentUser() {
   return currentUser ?? fallbackUser;
 }
+
+/** A session is kept for the whole lifetime of the application.  Routing must
+ * use this instead of treating the welcome screen as a logout action. */
+export function hasActiveSession() {
+  return currentUser !== null;
+}

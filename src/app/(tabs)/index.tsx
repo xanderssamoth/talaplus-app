@@ -9,6 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import SectionTitle from '@/components/SectionTitle';
+import MediaCover from '@/components/MediaCover';
 import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiHashtag, ApiMedia, ApiPost, getHashtags, getNewsFeed, getPopularMedia, getRecentMedia } from '@/lib/api';
@@ -58,8 +59,9 @@ export default function HomeScreen() {
           onTouchStart={() => setOpenPostMenuId(null)}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadHome(true)} tintColor={colors.primary} colors={[colors.primary]} progressBackgroundColor={colors.panel} />}
         >
-          {!!hero?.thumbnail && (
-            <ImageBackground source={{ uri: hero.thumbnail }} imageStyle={styles.heroImage} style={styles.hero}>
+          {!!hero && (
+            <View style={styles.hero}>
+              <MediaCover uri={hero.thumbnail} isAudio={hero.isAudio} style={styles.heroImage} />
               <View style={styles.heroShade}>
                 <Text style={styles.heroTitle}>{hero.title}</Text>
                 <Text style={styles.heroSubtitle} numberOfLines={2}>{hero.description}</Text>
@@ -68,7 +70,7 @@ export default function HomeScreen() {
                   <Text style={styles.watchText}>{t('watch')}</Text>
                 </Pressable>
               </View>
-            </ImageBackground>
+            </View>
           )}
 
           <View style={styles.section}>
@@ -126,7 +128,7 @@ export default function HomeScreen() {
 function MediaTile({ media }: { media: ApiMedia }) {
   return (
     <Pressable style={styles.mediaTile} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.mediaImage} /> : <View style={styles.mediaImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.mediaImage} />
       <Text style={styles.mediaTitle} numberOfLines={1}>{media.title}</Text>
     </Pressable>
   );

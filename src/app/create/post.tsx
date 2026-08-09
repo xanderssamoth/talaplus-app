@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
+import PublishingOverlay from '@/components/PublishingOverlay';
 import { buildPostForm, createPost } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 
@@ -116,6 +117,7 @@ export default function CreatePostScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <PublishingOverlay visible={submitting} />
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
           <Pressable onPress={() => step === 1 ? router.back() : setStep((current) => current - 1)}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>

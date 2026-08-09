@@ -1,6 +1,7 @@
 import { VideoPlayer, VideoView } from "expo-video";
 import { ImageBackground, Text, View, StyleSheet, ActivityIndicator } from "react-native";
 import { useState } from "react";
+import MediaCover from '@/components/MediaCover';
 
 type MediaHeaderProps = {
   thumbnail: string;
@@ -15,9 +16,10 @@ export default function MediaHeader(props: MediaHeaderProps) {
   return (
     <View style={styles.container}>
       {isTrailerLoading && (
-        <ImageBackground source={{ uri: thumbnail }} style={[StyleSheet.absoluteFill, styles.imageBackground]}>
+        <View style={[StyleSheet.absoluteFill, styles.imageBackground]}>
+          <MediaCover uri={thumbnail} style={StyleSheet.absoluteFill} />
           <ActivityIndicator size="large" color="white" />
-        </ImageBackground>
+        </View>
       )}
       <VideoView
         style={StyleSheet.absoluteFill}

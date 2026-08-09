@@ -14,7 +14,7 @@ export default function ProductCard({ product, wide }: ProductCardProps) {
 
   return (
     <Pressable style={[styles.card, wide && styles.wide]} onPress={() => router.push(`/productDetails/${product.id}`)}>
-      {product.image ? <Image source={{ uri: product.image }} style={[styles.image, wide && styles.wideImage]} /> : <View style={[styles.image, wide && styles.wideImage]} />}
+      <Image source={product.image ? { uri: product.image } : require('../../assets/covers/cover-product.png')} style={[styles.image, wide && styles.wideImage]} />
       <View style={styles.cartBadge}>
         <Feather name="shopping-cart" size={15} color={colors.text} />
       </View>

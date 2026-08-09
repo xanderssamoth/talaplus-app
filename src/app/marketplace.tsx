@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/EmptyState';
@@ -31,7 +31,7 @@ export default function MarketplaceScreen() {
     <>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <SafeAreaView style={styles.container}>
-        <AppHeader title={t('marketplace')} showAvatar searchType="product" />
+        <View style={styles.marketHeader}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable><View style={styles.marketHeaderContent}><AppHeader title={t('marketplace')} showAvatar searchType="product" /></View></View>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <SectionTitle title={t('categories')} />
@@ -83,6 +83,8 @@ function ProductSection({ title, empty, products, loading, wide, route }: { titl
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  marketHeader: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16 },
+  marketHeaderContent: { flex: 1 },
   content: { padding: 16, paddingBottom: 90 },
   section: { marginBottom: 26 },
   categoryItem: { width: 92, marginRight: 12, alignItems: 'center' },

@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Media } from '@/types/types';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 
 type MediaCardProps = {
   media: Media;
@@ -11,7 +12,7 @@ type MediaCardProps = {
 export default function MediaCard({ media, compact }: MediaCardProps) {
   return (
     <Pressable style={[styles.card, compact && styles.compact]} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      <Image source={{ uri: media.thumbnail }} style={styles.image} />
+      <MediaCover uri={media.thumbnail} isAudio={(media as Media & { isAudio?: boolean }).isAudio} style={styles.image} />
       <View style={styles.caption}>
         <Text style={styles.title} numberOfLines={1}>{media.title}</Text>
       </View>

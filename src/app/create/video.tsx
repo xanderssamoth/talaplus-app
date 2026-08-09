@@ -8,6 +8,8 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
+import PublishingOverlay from '@/components/PublishingOverlay';
 import { ApiCategory, ApiMedia, createMedia, getCategoriesForType, getUserMedia } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 
@@ -239,6 +241,7 @@ export default function CreateVideoScreen() {
 
     const form = new FormData();
     form.append('type', type);
+    form.append('is_audio', '0');
     form.append('media_title', title);
     form.append('title', title);
     form.append('media_description', description);
@@ -300,6 +303,7 @@ export default function CreateVideoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <PublishingOverlay visible={submitting} />
       <View style={styles.header}>
         <Pressable onPress={() => step === 1 ? router.back() : setStep((current) => current - 1)}>
           <Feather name="arrow-left" size={24} color={colors.text} />
@@ -468,7 +472,7 @@ export default function CreateVideoScreen() {
               ListFooterComponent={userMediaLoading ? <LoadingState compact /> : null}
               renderItem={({ item }) => (
                 <Pressable style={[styles.modalRow, belongsTo === item.id && styles.modalRowActive]} onPress={() => { setBelongsTo(item.id); setParentModalVisible(false); }}>
-                  {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.modalThumb} /> : <View style={styles.modalThumb} />}
+                  <MediaCover uri={item.thumbnail} isAudio={item.isAudio} style={styles.modalThumb} />
                   <View style={styles.modalRowBody}>
                     <Text style={styles.modalRowTitle} numberOfLines={1}>{item.title}</Text>
                     <Text style={styles.modalRowMeta}>{t(selectedType.labelKey)}</Text>

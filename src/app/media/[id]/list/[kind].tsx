@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 import { ApiMedia, ApiPost, getMediaChildren, getMediaComments, getRelatedMedia, likeComment } from '@/lib/api';
 
 export default function MediaMoreListScreen() {
@@ -92,7 +93,7 @@ export default function MediaMoreListScreen() {
 function MediaRow({ media }: { media: ApiMedia }) {
   return (
     <Pressable style={styles.mediaRow} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.mediaImage} /> : <View style={styles.mediaImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.mediaImage} />
       <View style={styles.mediaBody}>
         <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
         <Text style={styles.mediaMeta}>{media.type}</Text>

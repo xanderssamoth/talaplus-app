@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, GestureResponderEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import ShareSheet from '@/components/ShareSheet';
+import MediaCover from '@/components/MediaCover';
 import { addToWatchlist, ApiMedia, getMedia, getUserWatchlist, likeMedia, removeFromWatchlist, saveMediaProgress } from '@/lib/api';
 
 export default function PlayerScreen() {
@@ -27,6 +28,7 @@ export default function PlayerScreen() {
   const [watchlisted, setWatchlisted] = useState(false);
   const [titleExpanded, setTitleExpanded] = useState(false);
   const [shareVisible, setShareVisible] = useState(false);
+  const videoViewRef = useRef<VideoView>(null);
 
   useEffect(() => {
     if (!params.id) return;
@@ -75,7 +77,7 @@ export default function PlayerScreen() {
     const timer = setInterval(() => {
       const percentage = duration ? ((player.currentTime || 0) / duration) * 100 : 0;
       saveMediaProgress(media.id, percentage).catch(() => undefined);
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [duration, media?.id, player]);
@@ -143,23 +145,28 @@ export default function PlayerScreen() {
   };
 
   if (loading) {
-    return <SafeAreaView style={styles.container}><View style={styles.emptyWrap}><LoadingState /></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><Pressable style={styles.loadingBack} onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text}/></Pressable><View style={styles.emptyWrap}><LoadingState /></View></SafeAreaView>;
   }
 
   if (!media || !videoSource) {
-    return <SafeAreaView style={styles.container}><View style={styles.emptyWrap}><EmptyState title={t('videoUnavailableTitle')} body={t('videoUnavailableBody')} /></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><Pressable style={styles.loadingBack} onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text}/></Pressable><View style={styles.emptyWrap}><EmptyState title={t('videoUnavailableTitle')} body={t('videoUnavailableBody')} /></View></SafeAreaView>;
+  }
+
+  if (media.isAudio) {
+    return <AudioPlayer media={media} player={player} duration={duration} currentTime={currentTime} progress={progress} progressWidth={progressWidth} setProgressWidth={setProgressWidth} onSeek={seekFromEvent} onBack={() => router.back()} />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.videoShell}>
         <VideoView
+          ref={videoViewRef}
           player={player}
           style={styles.video}
-          allowsFullscreen={false}
+          allowsFullscreen
           allowsPictureInPicture={false}
           nativeControls={false}
-          contentFit={landscapeFit ? 'cover' : 'contain'}
+          contentFit="contain"
         />
         <Pressable style={StyleSheet.absoluteFill} onPress={togglePlayback} />
 
@@ -178,8 +185,8 @@ export default function PlayerScreen() {
                 <Feather name="volume-2" size={20} color={colors.text} />
               </Pressable>
             </View>
-            <Pressable style={[styles.iconButton, landscapeFit && styles.iconButtonActive]} onPress={() => setLandscapeFit((current) => !current)}>
-              <Feather name="rotate-cw" size={20} color={landscapeFit ? colors.primary : colors.text} />
+            <Pressable style={styles.iconButton} onPress={() => videoViewRef.current?.enterFullscreen()}>
+              <Feather name="maximize" size={20} color={colors.text} />
             </Pressable>
             <Pressable style={styles.iconButton} onPress={togglePlayback}>
               <FontAwesome name={player.playing ? 'pause' : 'play'} size={18} color={colors.text} />
@@ -236,6 +243,23 @@ function PlayerIcon({ active, filled, outline, onPress }: { active: boolean; fil
   );
 }
 
+function AudioPlayer({ media, player, duration, currentTime, progress, progressWidth, setProgressWidth, onSeek, onBack }: { media: ApiMedia; player: ReturnType<typeof useVideoPlayer>; duration: number; currentTime: number; progress: number; progressWidth: number; setProgressWidth: (width: number) => void; onSeek: (event: GestureResponderEvent) => void; onBack: () => void }) {
+  const { t } = useTranslation();
+  const skip = (seconds: number) => { player.currentTime = Math.max(0, Math.min(duration, player.currentTime + seconds)); };
+  return <SafeAreaView style={styles.audioContainer}>
+    <VideoView player={player} style={styles.hiddenAudio} nativeControls={false} />
+    <View style={styles.audioHeader}><Pressable onPress={onBack}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable><Text style={styles.audioHeaderTitle}>{t('audioPlayer')}</Text><Feather name="more-vertical" size={24} color={colors.text} /></View>
+    <View style={styles.audioContent}>
+      <Text style={styles.audioTitle} numberOfLines={2}>{media.title}</Text><Text style={styles.audioAuthor}>{media.author || media.username || 'TALA+'}</Text>
+      <MediaCover uri={media.thumbnail} isAudio style={styles.audioCover} />
+      <View style={styles.audioProgress} onLayout={(event) => setProgressWidth(event.nativeEvent.layout.width)} onStartShouldSetResponder={() => true} onMoveShouldSetResponder={() => true} onResponderGrant={onSeek} onResponderMove={onSeek}><View style={[styles.audioProgressFill, { width: `${progress * 100}%` }]} /><View style={[styles.audioThumb, { left: `${progress * 100}%` }]} /></View>
+      <View style={styles.times}><Text style={styles.audioTime}>{formatTime(currentTime)}</Text><Text style={styles.audioTime}>{formatTime(duration)}</Text></View>
+      <View style={styles.audioControls}><Pressable onPress={() => skip(-15)}><Feather name="rotate-ccw" size={32} color={colors.text}/><Text style={styles.skipLabel}>15</Text></Pressable><Pressable style={styles.audioPlay} onPress={() => player.playing ? player.pause() : player.play()}><FontAwesome name={player.playing ? 'pause' : 'play'} size={34} color={colors.background}/></Pressable><Pressable onPress={() => skip(15)}><Feather name="rotate-cw" size={32} color={colors.text}/><Text style={styles.skipLabel}>15</Text></Pressable></View>
+      <View style={styles.audioOptions}><Text style={styles.audioOption}>1.0×{`\n`}{t('speed')}</Text><Text style={styles.audioOption}>☷{`\n`}{t('chapters')}</Text><Text style={styles.audioOption}>•••{`\n`}{t('more')}</Text></View>
+    </View>
+  </SafeAreaView>;
+}
+
 function formatTime(totalSeconds: number) {
   const safe = Math.max(Math.floor(totalSeconds), 0);
   const hours = Math.floor(safe / 3600);
@@ -262,6 +286,7 @@ function channelLabel(type: string | undefined, t: (key: string) => string) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   emptyWrap: { padding: 16 },
+  loadingBack: { padding: 16, alignSelf: 'flex-start' },
   videoShell: { flex: 1, justifyContent: 'center', backgroundColor: '#000000' },
   video: { ...StyleSheet.absoluteFillObject },
   topOverlay: { position: 'absolute', left: 14, right: 14, top: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -283,4 +308,21 @@ const styles = StyleSheet.create({
   progressThumb: { position: 'absolute', top: 2, width: 14, height: 14, marginLeft: -7, borderRadius: 7, backgroundColor: colors.text },
   times: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
   time: { color: colors.text, fontSize: 12, fontWeight: '800' },
+  audioContainer: { flex: 1, backgroundColor: colors.background },
+  hiddenAudio: { width: 1, height: 1, opacity: 0 },
+  audioHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18 },
+  audioHeaderTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  audioContent: { flex: 1, alignItems: 'center', padding: 24, paddingTop: 30 },
+  audioTitle: { color: colors.text, fontSize: 22, fontWeight: '900', textAlign: 'center' },
+  audioAuthor: { color: colors.muted, fontSize: 15, fontWeight: '700', marginTop: 7, marginBottom: 30 },
+  audioCover: { width: '82%', aspectRatio: 1, borderRadius: 10 },
+  audioProgress: { width: '100%', height: 20, justifyContent: 'center', marginTop: 34, backgroundColor: colors.panelLight, borderRadius: 10 },
+  audioProgressFill: { height: 5, borderRadius: 5, backgroundColor: colors.primary },
+  audioThumb: { position: 'absolute', width: 16, height: 16, marginLeft: -8, borderRadius: 8, backgroundColor: colors.text },
+  audioTime: { color: colors.muted, fontWeight: '700' },
+  audioControls: { width: '76%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 40 },
+  audioPlay: { width: 78, height: 78, borderRadius: 39, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.text },
+  skipLabel: { color: colors.text, fontSize: 11, fontWeight: '900', textAlign: 'center', marginTop: -22 },
+  audioOptions: { width: '100%', flexDirection: 'row', justifyContent: 'space-around', marginTop: 46, padding: 18, borderRadius: 12, backgroundColor: colors.panel },
+  audioOption: { color: colors.text, textAlign: 'center', fontWeight: '800', lineHeight: 24 },
 });

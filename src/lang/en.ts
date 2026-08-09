@@ -352,6 +352,8 @@ const en = {
   countries: 'Countries',
   cities: 'Cities',
   noMessagesBody: 'Your conversations will appear here.',
+  audioPlayer: 'Audio player', speed: 'Speed', chapters: 'Chapters', publishing: 'Publishing', publishingHint: 'Your file is being uploaded. Please wait.',
+  newAudio: 'New audio', newMessage: 'New message', publishAudio: 'Publish audio', chooseAudio: 'Choose audio', selectAudio: 'Select an audio file', chooseAudioFile: 'Choose an audio file', audioInfo: 'Audio information', accessAndPrice: 'Access & pricing', audioTitle: 'Audio title', audioAuthor: 'Author / performer', addAudioCover: 'Add a cover', audio: 'Audio', audioAccessHint: 'Available to everyone', requiredAudioTitle: 'Audio required', requiredAudioBody: 'Choose an audio file from your device.', incompleteAudioInfoBody: 'Add a title, description and author.', audioPublished: 'Audio published', audioPublishedBody: 'Your audio has been sent to the server.', searchRecipient: 'Search a person or group', connections: 'Connections', group: 'Group',
 };
 
 export default en;

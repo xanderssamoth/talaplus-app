@@ -9,7 +9,8 @@ import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
-import { ApiConversation, ApiMessage, ApiPost, getConversations, getNewsFeed, sendMessage } from '@/lib/api';
+import { ApiConversation, ApiMessage, ApiPost, getConversationMessages, getConversations, getNewsFeed, sendMessage } from '@/lib/api';
+import { useLocalSearchParams } from 'expo-router';
 import { getCurrentUser } from '@/lib/session';
 
 type Tab = 'direct' | 'groups' | 'posts';
@@ -18,6 +19,7 @@ const quickEmojis = ['😀', '😂', '😍', '🔥', '🙏', '❤️'];
 
 export default function CommunityScreen() {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{ compose?: 'user' | 'group'; recipientId?: string; title?: string }>();
   const [tab, setTab] = useState<Tab>('direct');
   const [conversations, setConversations] = useState<ApiConversation[]>([]);
   const [conversationPage, setConversationPage] = useState(1);
@@ -32,6 +34,11 @@ export default function CommunityScreen() {
     loadConversations(1, true);
     loadPosts(1, true);
   }, []);
+
+  useEffect(() => {
+    if (!params.compose || !params.recipientId) return;
+    setActiveConversation({ key: `${params.compose}:${params.recipientId}`, kind: params.compose, title: params.title ?? '', subtitle: '', peerUserId: params.compose === 'user' ? params.recipientId : undefined, groupId: params.compose === 'group' ? params.recipientId : undefined, unreadCount: 0 });
+  }, [params.compose, params.recipientId, params.title]);
 
   const loadConversations = (nextPage: number, reset = false) => {
     if (loading || (!reset && nextPage > conversationLastPage)) return;
@@ -136,6 +143,7 @@ function ConversationModal({ conversation, onClose }: { conversation: ApiConvers
   useEffect(() => {
     setMessages(conversation?.lastMessage ? [conversation.lastMessage] : []);
     setText('');
+    if (conversation) getConversationMessages(conversation).then(setMessages).catch(() => undefined);
   }, [conversation]);
 
   const send = async () => {

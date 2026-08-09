@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
+import MediaCover from '@/components/MediaCover';
 import { colors } from '@/constants/theme';
 import { addToWatchlist, ApiMedia, ApiMediaStats, ApiPost, createMediaComment, getMedia, getMediaChildren, getMediaComments, getMediaStats, getRelatedMedia, getUserWatchlist, isFollowingUser, likeComment, likeMedia, removeFromWatchlist, toggleSubscription } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
@@ -161,7 +162,8 @@ export default function MediaDetailsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <ImageBackground source={media.thumbnail ? { uri: media.thumbnail } : undefined} style={styles.hero} imageStyle={styles.heroImage}>
+        <View style={styles.hero}>
+          <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.heroImage} />
           <View style={styles.heroOverlay}>
             <Pressable style={styles.back} onPress={() => router.back()}>
               <Feather name="chevron-left" size={28} color={colors.text} />
@@ -173,7 +175,7 @@ export default function MediaDetailsScreen() {
               </Pressable>
             )}
           </View>
-        </ImageBackground>
+        </View>
 
         <View style={styles.content}>
           <Text style={styles.title}>{media.title}</Text>
@@ -292,7 +294,7 @@ function MediaRow({ media, compact }: { media: ApiMedia; compact?: boolean }) {
 
   return (
     <Pressable style={styles.mediaRow} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.rowImage} /> : <View style={styles.rowImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.rowImage} />
       <View style={styles.rowBody}>
         <Text style={styles.rowTitle} numberOfLines={1}>{media.title}</Text>
         <Text style={styles.rowMeta} numberOfLines={1}>{meta}</Text>

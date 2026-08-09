@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 import { ApiMedia, ApiPost, getHashtagEntities } from '@/lib/api';
 
 type Tab = 'media' | 'comments';
@@ -87,7 +88,7 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
 function MediaCard({ media }: { media: ApiMedia }) {
   return (
     <Pressable style={styles.mediaCard} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.mediaImage} /> : <View style={styles.mediaImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.mediaImage} />
       <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
       {!!media.category && <Text style={styles.mediaMeta} numberOfLines={1}>{media.category}</Text>}
     </Pressable>

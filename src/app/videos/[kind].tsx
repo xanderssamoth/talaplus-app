@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
+import MediaCover from '@/components/MediaCover';
 import { ApiMedia, getMediaByType, getPopularMedia, getRecentMedia } from '@/lib/api';
 
 export default function VideosListScreen() {
@@ -72,7 +73,7 @@ function RankedMedia({ media, rank }: { media: ApiMedia; rank: number }) {
 
   return (
     <Pressable style={styles.rankedCard} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.rankedImage} /> : <View style={styles.rankedImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.rankedImage} />
       <Text style={styles.rank}>{rank}</Text>
       <View style={styles.rankedBody}>
         <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
@@ -87,7 +88,7 @@ function MediaRow({ media }: { media: ApiMedia }) {
 
   return (
     <Pressable style={styles.mediaRow} onPress={() => router.push(`/mediaDetails/${media.id}`)}>
-      {media.thumbnail ? <Image source={{ uri: media.thumbnail }} style={styles.mediaImage} /> : <View style={styles.mediaImage} />}
+      <MediaCover uri={media.thumbnail} isAudio={media.isAudio} style={styles.mediaImage} />
       <View style={styles.mediaBody}>
         <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
         <Text style={styles.mediaMeta}>{media.category || (media.type ? channelLabel(media.type, t) : 'TALA+')}</Text>
