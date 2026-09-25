@@ -39,7 +39,8 @@
           "visibility": "hidden"
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-font"
     ],
     "extra": {
       "router": {},
