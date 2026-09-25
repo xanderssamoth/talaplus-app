@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { ThemeProvider, DarkTheme } from '@react-navigation/native';
+import { ThemeProvider, DarkTheme } from 'expo-router/react-navigation';
 import { PaperProvider } from 'react-native-paper';
 import '@/i18n';
 

@@ -326,8 +326,6 @@ export default function CreateVideoScreen() {
                     <VideoView
                       player={previewPlayer}
                       style={styles.videoPreview}
-                      allowsFullscreen={false}
-                      allowsPictureInPicture={false}
                       nativeControls={false}
                       contentFit="cover"
                     />
@@ -544,9 +542,9 @@ const styles = StyleSheet.create({
   panelTitle: { color: colors.text, fontSize: 17, fontWeight: '900', textAlign: 'center', marginBottom: 12 },
   helper: { color: colors.muted, fontSize: 12, textAlign: 'center', marginBottom: 12 },
   mediaPicker: { minHeight: 260, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelLight, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-  videoPreviewLayer: { ...StyleSheet.absoluteFillObject },
+  videoPreviewLayer: { ...StyleSheet.absoluteFill },
   videoPreview: { width: '100%', height: '100%' },
-  videoPreviewOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between', padding: 12, backgroundColor: 'rgba(0,0,0,0.18)' },
+  videoPreviewOverlay: { ...StyleSheet.absoluteFill, justifyContent: 'space-between', padding: 12, backgroundColor: 'rgba(0,0,0,0.18)' },
   videoPreviewBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: 'rgba(0,0,0,0.62)' },
   videoPreviewBadgeText: { color: colors.text, fontSize: 12, fontWeight: '900' },
   changeVideoText: { alignSelf: 'center', color: colors.text, fontSize: 12, fontWeight: '900', borderRadius: 999, overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: 'rgba(0,0,0,0.62)' },
@@ -574,7 +572,7 @@ const styles = StyleSheet.create({
   inlineMoreButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 12, marginTop: 10, backgroundColor: colors.panelLight, borderWidth: 1, borderColor: colors.border },
   inlineMoreText: { color: colors.primary, fontWeight: '900' },
   previewCard: { height: 210, borderRadius: 8, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelLight, marginBottom: 12 },
-  previewImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  previewImage: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
   playOverlay: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.54)' },
   previewLine: { flexDirection: 'row', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   previewLabel: { width: 92, color: colors.muted },

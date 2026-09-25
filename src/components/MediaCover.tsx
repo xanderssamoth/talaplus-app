@@ -1,11 +1,11 @@
 import { Image, ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
 import { colors } from '@/constants/theme';
 
-/** Keeps media without a cover identifiable instead of rendering an empty tile. */
-const audioCover = require('../../assets/covers/cover-audio.png');
-const videoCover = require('../../assets/covers/cover-video.png');
-
-export default function MediaCover({ uri, isAudio, style }: { uri?: string; isAudio?: boolean; style?: StyleProp<ImageStyle> }) {
+/** Covers are served by the API. Keep an empty, neutral area while a legacy
+ * record has no cover_url rather than substituting a local image. */
+export default function MediaCover({ uri, style }: { uri?: string; isAudio?: boolean; style?: StyleProp<ImageStyle> }) {
   if (uri) return <Image source={{ uri }} style={style} />;
-  return <Image source={isAudio ? audioCover : videoCover} style={style} resizeMode="cover" />;
+  return <View style={[styles.empty, style]} />;
 }
+
+const styles = StyleSheet.create({ empty: { backgroundColor: colors.panelLight } });

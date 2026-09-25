@@ -163,8 +163,7 @@ export default function PlayerScreen() {
           ref={videoViewRef}
           player={player}
           style={styles.video}
-          allowsFullscreen
-          allowsPictureInPicture={false}
+          fullscreenOptions={{ enable: true, orientation: 'landscape', autoExitOnRotate: true }}
           nativeControls={false}
           contentFit="contain"
         />
@@ -288,7 +287,7 @@ const styles = StyleSheet.create({
   emptyWrap: { padding: 16 },
   loadingBack: { padding: 16, alignSelf: 'flex-start' },
   videoShell: { flex: 1, justifyContent: 'center', backgroundColor: '#000000' },
-  video: { ...StyleSheet.absoluteFillObject },
+  video: { ...StyleSheet.absoluteFill },
   topOverlay: { position: 'absolute', left: 14, right: 14, top: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   topControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sideActions: { position: 'absolute', left: 14, bottom: 122, gap: 12 },
