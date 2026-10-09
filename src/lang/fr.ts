@@ -353,6 +353,8 @@ const fr = {
   cities: 'Villes',
   noMessagesBody: 'Vos conversations apparaîtront ici.',
   audioPlayer: 'Lecteur audio', speed: 'Vitesse', chapters: 'Chapitres', publishing: 'Publication en cours', publishingHint: 'Le fichier est en cours de téléversement. Merci de patienter.',
+  choosePhoto: 'Choisir une photo', recent: 'Récents', loadingMedia: 'Chargement des fichiers…', noMediaFound: 'Aucun fichier trouvé dans ce dossier.', mediaAccessTitle: 'Accès aux fichiers', mediaAccessBody: 'Autorisez TALA+ à accéder aux médias pour choisir un fichier.', chooseVideoFrame: 'Choisissez une image de votre vidéo',
+  mediaDevBuildTitle: 'Build de développement requise', mediaDevBuildBody: 'Expo Go ne peut pas donner à TALA+ l’accès complet aux fichiers de votre téléphone. Installez la build de développement ou l’APK TALA+ pour voir les albums et les médias.',
   newAudio: 'Nouvel audio', newMessage: 'Nouveau message', publishAudio: 'Publier un audio', chooseAudio: 'Choisir un audio', selectAudio: 'Sélectionner un fichier audio', chooseAudioFile: 'Choisir un fichier audio', audioInfo: "Informations de l’audio", accessAndPrice: 'Accès & tarification', audioTitle: "Titre de l’audio", audioAuthor: 'Auteur / interprète', addAudioCover: 'Ajouter une miniature', audio: 'Audio', audioAccessHint: 'Accessible à tous', requiredAudioTitle: 'Audio requis', requiredAudioBody: 'Choisis un fichier audio depuis ton appareil.', incompleteAudioInfoBody: 'Ajoute le titre, la description et l’auteur.', audioPublished: 'Audio publié', audioPublishedBody: 'Votre audio a été envoyé au serveur.', searchRecipient: 'Rechercher une personne ou un groupe', connections: 'Connexions', group: 'Groupe',
 };
 

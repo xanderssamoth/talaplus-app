@@ -33,6 +33,17 @@
                 }
             ],
             "expo-video",
+            [
+                "expo-media-library",
+                {
+                    "photosPermission": "Autoriser TALA+ à accéder à vos photos afin de choisir une couverture.",
+                    "granularPermissions": [
+                        "photo",
+                        "video",
+                        "audio"
+                    ]
+                }
+            ],
             "expo-font",
             "expo-status-bar",
             [

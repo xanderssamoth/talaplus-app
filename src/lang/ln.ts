@@ -353,6 +353,8 @@ const ln = {
   cities: 'Ba ville',
   noMessagesBody: 'Ba conversation na yo ekomonana awa.',
   audioPlayer: 'Motángi ya audio', speed: 'Mbangu', chapters: 'Biteni', publishing: 'Kobimisa ezali kosalema', publishingHint: 'Fichier na yo ezali kotindama. Zela moke.',
+  choosePhoto: 'Pona foto', recent: 'Ya sika', loadingMedia: 'Ko charger ba fichiers…', noMediaFound: 'Fichier moko te na dossier oyo.', mediaAccessTitle: 'Ndinga ya ba fichiers', mediaAccessBody: 'Pesa TALA+ ndinga ya kotala ba médias mpo na kopona fichier.', chooseVideoFrame: 'Pona elili moko na vidéo na yo',
+  mediaDevBuildTitle: 'Build ya développement esengeli', mediaDevBuildBody: 'Expo Go ekoki te kopesa TALA+ nzela mobimba ya kotala ba fichiers na telefone na yo. Tia build ya développement to APK ya TALA+ mpo omona ba albums mpe ba médias.',
   newAudio: 'Audio ya sika', newMessage: 'Nsango ya sika', publishAudio: 'Kobimisa audio', chooseAudio: 'Pona audio', selectAudio: 'Pona fichier audio', chooseAudioFile: 'Pona fichier audio', audioInfo: 'Makambo ya audio', accessAndPrice: 'Kokota mpe motuya', audioTitle: 'Titre ya audio', audioAuthor: 'Mokomeli / moyembi', addAudioCover: 'Bakisa elili ya liboso', audio: 'Audio', audioAccessHint: 'Ezali mpo na bato nyonso', requiredAudioTitle: 'Audio esengeli', requiredAudioBody: 'Pona fichier audio na telefone na yo.', incompleteAudioInfoBody: 'Bakisa titre, ndimbola mpe mokomeli.', audioPublished: 'Audio ebimisami', audioPublishedBody: 'Audio na yo etindami na serveur.', searchRecipient: 'Luka moto to groupe', connections: 'Ba connexions', group: 'Groupe',
 };
 

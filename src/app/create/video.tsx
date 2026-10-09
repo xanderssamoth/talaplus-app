@@ -3,13 +3,14 @@ import { Alert, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switc
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import MediaCover from '@/components/MediaCover';
 import PublishingOverlay from '@/components/PublishingOverlay';
+import DeviceMediaPicker, { DeviceMediaFile } from '@/components/DeviceMediaPicker';
 import { ApiCategory, ApiMedia, createMedia, getCategoriesForType, getUserMedia } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 
@@ -18,18 +19,6 @@ type PickedAsset = {
   name: string;
   mimeType: string;
 };
-
-type ThumbnailModule = {
-  getThumbnailAsync?: (uri: string, options?: { time?: number }) => Promise<{ uri: string }>;
-};
-
-const videoThumbnails: ThumbnailModule | null = (() => {
-  try {
-    return require('expo-video-thumbnails') as ThumbnailModule;
-  } catch {
-    return null;
-  }
-})();
 
 const mediaTypes = [
   { labelKey: 'filmsAndSeries', value: 'film_series', icon: 'clapperboard', color: '#2677D7' },
@@ -71,6 +60,8 @@ export default function CreateVideoScreen() {
   const [generatedCover, setGeneratedCover] = useState(false);
   const [generatingCover, setGeneratingCover] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [pickerKind, setPickerKind] = useState<'video' | 'photo' | null>(null);
+  const [coverFrames, setCoverFrames] = useState<PickedAsset[]>([]);
 
   const selectedType = useMemo(() => mediaTypes.find((item) => item.value === type) ?? mediaTypes[0], [type]);
   const nextDisabled = (step === 1 && !video) || submitting;
@@ -97,22 +88,15 @@ export default function CreateVideoScreen() {
       previewPlayer.loop = true;
       previewPlayer.muted = true;
       previewPlayer.play();
-      if (!cover) {
-        generateCoverFromVideo(video);
-      }
     } else {
       previewPlayer.pause();
     }
   }, [previewPlayer, video]);
 
   const generateCoverFromVideo = async (asset: PickedAsset) => {
-    if (!videoThumbnails?.getThumbnailAsync) {
-      return null;
-    }
-
     try {
       setGeneratingCover(true);
-      const result = await videoThumbnails.getThumbnailAsync(asset.uri, { time: 3000 });
+      const result = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 3000 });
       const nextCover = {
         uri: result.uri,
         name: `talaplus-cover-${Date.now()}.jpg`,
@@ -126,6 +110,22 @@ export default function CreateVideoScreen() {
     } finally {
       setGeneratingCover(false);
     }
+  };
+
+  const generateCoverFrames = async (asset: PickedAsset) => {
+    try {
+      setGeneratingCover(true);
+      const moments = [1000, 3000, 6000, 10000, 15000, 21000];
+      const candidates = await Promise.all(moments.map(async (time, index) => {
+        try {
+          const frame = await VideoThumbnails.getThumbnailAsync(asset.uri, { time });
+          return { uri: frame.uri, name: `talaplus-cover-${index}.jpg`, mimeType: 'image/jpeg' };
+        } catch { return null; }
+      }));
+      const frames = candidates.filter((frame): frame is PickedAsset => frame !== null);
+      setCoverFrames(frames);
+      if (frames[0]) { setCover(frames[0]); setGeneratedCover(true); }
+    } catch { setCoverFrames([]); } finally { setGeneratingCover(false); }
   };
 
   const loadUserMedia = (nextPage: number, reset = false) => {
@@ -162,43 +162,8 @@ export default function CreateVideoScreen() {
       .finally(() => setCategoriesLoading(false));
   };
 
-  const pickVideo = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'video/*',
-      copyToCacheDirectory: true,
-      multiple: false,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setCover(null);
-      setGeneratedCover(false);
-      setVideo({
-        uri: asset.uri,
-        name: asset.name ?? `talaplus-video-${Date.now()}.mp4`,
-        mimeType: asset.mimeType ?? 'video/mp4',
-      });
-    }
-  };
-
-  const pickCover = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ['image/png', 'image/jpeg'],
-      copyToCacheDirectory: true,
-      multiple: false,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      const extension = (asset.name ?? asset.uri).split('.').pop()?.toLowerCase();
-      setCover({
-        uri: asset.uri,
-        name: asset.name ?? `talaplus-cover-${Date.now()}.${extension === 'png' ? 'png' : 'jpg'}`,
-        mimeType: asset.mimeType ?? (extension === 'png' ? 'image/png' : 'image/jpeg'),
-      });
-      setGeneratedCover(false);
-    }
-  };
+  const pickVideo = () => setPickerKind('video');
+  const selectVideo = (asset: DeviceMediaFile) => { const next = asset as PickedAsset; setCover(null); setCoverFrames([]); setGeneratedCover(false); setVideo(next); generateCoverFrames(next); };
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
@@ -370,11 +335,12 @@ export default function CreateVideoScreen() {
         {step === 3 && (
           <View style={styles.stepPanel}>
             <Text style={styles.panelTitle}>{t('videoInfo')}</Text>
-            <Pressable style={styles.coverPicker} onPress={pickCover}>
+            <View style={styles.coverPicker}>
               {cover ? <Image source={{ uri: cover.uri }} style={styles.coverImage} /> : <FontAwesome6 name="image" size={34} color={colors.primary} />}
-              <Text style={styles.coverText}>{cover ? t('changeCover') : t('chooseCover')}</Text>
-            </Pressable>
-            <Text style={styles.helper}>{generatingCover ? t('generatingCover') : generatedCover ? t('generatedCover') : t('coverOptionalHint')}</Text>
+            </View>
+            <Text style={styles.coverText}>{t('chooseVideoFrame')}</Text>
+            {generatingCover ? <Text style={styles.helper}>{t('generatingCover')}</Text> : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.frameRow}>{coverFrames.map((frame) => <Pressable key={frame.uri} onPress={() => { setCover(frame); setGeneratedCover(true); }} style={[styles.frame, cover?.uri === frame.uri && styles.frameActive]}><Image source={{ uri: frame.uri }} style={styles.frameImage}/></Pressable>)}</ScrollView>}
+            <Text style={styles.helper}>{generatedCover ? t('generatedCover') : t('coverOptionalHint')}</Text>
             <TextInput value={title} onChangeText={setTitle} placeholder={t('videoTitle')} placeholderTextColor={colors.muted} style={styles.input} />
             <TextInput value={description} onChangeText={setDescription} placeholder={t('description')} placeholderTextColor={colors.muted} style={[styles.input, styles.textarea]} multiline />
             <TextInput value={durationText} onChangeText={updateDuration} placeholder={t('videoLength')} placeholderTextColor={colors.muted} keyboardType="number-pad" style={styles.input} />
@@ -510,6 +476,7 @@ export default function CreateVideoScreen() {
           </View>
         </View>
       </Modal>
+      <DeviceMediaPicker visible={pickerKind !== null} kind={pickerKind ?? 'video'} onClose={() => setPickerKind(null)} onSelect={selectVideo} />
     </SafeAreaView>
   );
 }
@@ -558,6 +525,10 @@ const styles = StyleSheet.create({
   coverPicker: { minHeight: 160, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelLight, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
   coverImage: { width: '100%', height: 160 },
   coverText: { color: colors.text, fontWeight: '800', marginTop: 8 },
+  frameRow: { gap: 10, paddingVertical: 4 },
+  frame: { width: 92, height: 62, borderRadius: 8, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
+  frameActive: { borderColor: colors.primary },
+  frameImage: { width: '100%', height: '100%' },
   input: { color: colors.text, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 14, marginBottom: 12, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
   textarea: { minHeight: 110, textAlignVertical: 'top' },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, marginBottom: 12 },
