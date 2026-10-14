@@ -164,6 +164,14 @@ export default function CreateVideoScreen() {
 
   const pickVideo = () => setPickerKind('video');
   const selectVideo = (asset: DeviceMediaFile) => { const next = asset as PickedAsset; setCover(null); setCoverFrames([]); setGeneratedCover(false); setVideo(next); generateCoverFrames(next); };
+  const selectMediaFile = (asset: DeviceMediaFile) => {
+    if (pickerKind === 'photo') {
+      setCover(asset);
+      setGeneratedCover(false);
+      return;
+    }
+    selectVideo(asset);
+  };
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
@@ -340,6 +348,10 @@ export default function CreateVideoScreen() {
             </View>
             <Text style={styles.coverText}>{t('chooseVideoFrame')}</Text>
             {generatingCover ? <Text style={styles.helper}>{t('generatingCover')}</Text> : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.frameRow}>{coverFrames.map((frame) => <Pressable key={frame.uri} onPress={() => { setCover(frame); setGeneratedCover(true); }} style={[styles.frame, cover?.uri === frame.uri && styles.frameActive]}><Image source={{ uri: frame.uri }} style={styles.frameImage}/></Pressable>)}</ScrollView>}
+            <Pressable style={styles.galleryCoverButton} onPress={() => setPickerKind('photo')}>
+              <Feather name="image" size={18} color={colors.text} />
+              <Text style={styles.galleryCoverText}>{t('chooseCoverFromPhone')}</Text>
+            </Pressable>
             <Text style={styles.helper}>{generatedCover ? t('generatedCover') : t('coverOptionalHint')}</Text>
             <TextInput value={title} onChangeText={setTitle} placeholder={t('videoTitle')} placeholderTextColor={colors.muted} style={styles.input} />
             <TextInput value={description} onChangeText={setDescription} placeholder={t('description')} placeholderTextColor={colors.muted} style={[styles.input, styles.textarea]} multiline />
@@ -476,7 +488,7 @@ export default function CreateVideoScreen() {
           </View>
         </View>
       </Modal>
-      <DeviceMediaPicker visible={pickerKind !== null} kind={pickerKind ?? 'video'} onClose={() => setPickerKind(null)} onSelect={selectVideo} />
+      <DeviceMediaPicker visible={pickerKind !== null} kind={pickerKind ?? 'video'} onClose={() => setPickerKind(null)} onSelect={selectMediaFile} />
     </SafeAreaView>
   );
 }
@@ -529,6 +541,8 @@ const styles = StyleSheet.create({
   frame: { width: 92, height: 62, borderRadius: 8, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
   frameActive: { borderColor: colors.primary },
   frameImage: { width: '100%', height: '100%' },
+  galleryCoverButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingVertical: 12, marginVertical: 10, borderRadius: 8, backgroundColor: colors.primary },
+  galleryCoverText: { color: colors.text, fontWeight: '900' },
   input: { color: colors.text, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 14, marginBottom: 12, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
   textarea: { minHeight: 110, textAlignVertical: 'top' },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, marginBottom: 12 },

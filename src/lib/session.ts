@@ -1,4 +1,5 @@
 import i18n from '@/i18n';
+import * as SecureStore from 'expo-secure-store';
 
 export const API_BASE_URL = 'https://admin.talaplus.tv/api';
 
@@ -52,6 +53,33 @@ export class ApiError extends Error {
 }
 
 let currentUser: AppUser | null = null;
+const SESSION_KEY = 'talaplus.session.v1';
+
+async function persistSession(user: AppUser | null) {
+  try {
+    if (user) {
+      const { password: _password, ...safeUser } = user;
+      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(safeUser));
+    }
+    else await SecureStore.deleteItemAsync(SESSION_KEY);
+  } catch {
+    // The in-memory session still works on unsupported platforms.
+  }
+}
+
+export async function restoreSession() {
+  if (currentUser) return currentUser;
+  try {
+    const stored = await SecureStore.getItemAsync(SESSION_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as AppUser;
+    if (!parsed?.id || !parsed?.username) return null;
+    currentUser = parsed;
+    return currentUser;
+  } catch {
+    return null;
+  }
+}
 
 const fallbackUser: AppUser = {
   id: 'guest',
@@ -169,6 +197,7 @@ export async function signIn(identifier: string, password: string) {
   });
 
   currentUser = normalizeUser(body.data);
+  await persistSession(currentUser);
   return currentUser;
 }
 
@@ -176,6 +205,7 @@ export async function signInAsVisitor(username: string) {
   const body = await apiRequest<UserPayload>(`/v1/user/username/${encodeURIComponent(username.trim())}`);
 
   currentUser = normalizeUser(body.data);
+  await persistSession(currentUser);
   return currentUser;
 }
 
@@ -213,11 +243,13 @@ export async function signUp(data: Partial<Pick<AppUser, 'firstname' | 'lastname
   });
 
   currentUser = normalizeUser(body.data?.user ?? body.data);
+  await persistSession(currentUser);
   return currentUser;
 }
 
-export function signOut() {
+export async function signOut() {
   currentUser = null;
+  await persistSession(null);
 }
 
 export function getCurrentUser() {

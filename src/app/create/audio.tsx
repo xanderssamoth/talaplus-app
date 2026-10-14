@@ -23,10 +23,14 @@ import DeviceMediaPicker, {
 
 type Asset = { uri: string; name: string; mimeType: string };
 const audioTypes = [
-  { value: "music", icon: "music" },
-  { value: "education", icon: "graduation-cap" },
-  { value: "documentary", icon: "microphone-lines" },
-  { value: "comedy", icon: "face-laugh-beam" },
+  { labelKey: "filmsAndSeries", value: "film_series", icon: "clapperboard", color: "#2677D7" },
+  { labelKey: "comedy", value: "comedy", icon: "face-laugh-beam", color: "#F36A25" },
+  { labelKey: "music", value: "music", icon: "music", color: "#7B2FF7" },
+  { labelKey: "education", value: "education", icon: "graduation-cap", color: "#38A35A" },
+  { labelKey: "business", value: "business", icon: "briefcase", color: "#F6A128" },
+  { labelKey: "crafts", value: "crafts_diy", icon: "screwdriver-wrench", color: "#287AC0" },
+  { labelKey: "simulatedSport", value: "sports", icon: "futbol", color: "#37A33B" },
+  { labelKey: "documentaries", value: "documentary", icon: "file-audio", color: "#127B8F" },
 ] as const;
 
 export default function CreateAudioScreen() {
@@ -146,6 +150,7 @@ export default function CreateAudioScreen() {
                   onPress={() => setType(item.value)}
                   style={[
                     styles.type,
+                    { backgroundColor: item.color },
                     type === item.value && styles.typeSelected,
                   ]}
                 >
@@ -154,17 +159,8 @@ export default function CreateAudioScreen() {
                     size={27}
                     color={colors.text}
                   />
-                  <Text style={styles.typeText}>
-                    {t(
-                      item.value === "music"
-                        ? "music"
-                        : item.value === "education"
-                          ? "education"
-                          : item.value === "documentary"
-                            ? "documentaries"
-                            : "comedy",
-                    )}
-                  </Text>
+                  <Text style={styles.typeText}>{t(item.labelKey)}</Text>
+                  {type === item.value && <Feather name="check-circle" size={18} color={colors.text} style={styles.typeCheck} />}
                 </Pressable>
               ))}
             </View>
@@ -252,7 +248,12 @@ export default function CreateAudioScreen() {
           </Text>
         </Pressable>
       </ScrollView>
-      <DeviceMediaPicker visible={pickerKind !== null} kind={pickerKind ?? 'audio'} onClose={() => setPickerKind(null)} onSelect={selectFile} />
+      <DeviceMediaPicker
+        visible={pickerKind !== null}
+        kind={pickerKind ?? "audio"}
+        onClose={() => setPickerKind(null)}
+        onSelect={selectFile}
+      />
     </SafeAreaView>
   );
 }
@@ -295,7 +296,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: colors.panel,
   },
-  typeSelected: { borderWidth: 2, borderColor: colors.primary },
+  typeSelected: { borderWidth: 2, borderColor: colors.text },
+  typeCheck: { position: "absolute", top: 8, right: 8 },
   typeText: { color: colors.text, fontWeight: "800" },
   cover: {
     height: 150,

@@ -1,70 +1,71 @@
 {
-    "expo": {
-        "name": "TalaPlus",
-        "slug": "TalaPlus",
-        "scheme": "tala-plus",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "light",
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-foreground.png",
-                "backgroundImage": "./assets/adaptive-background.png"
-            },
-            "softwareKeyboardLayoutMode": "resize",
-            "predictiveBackGestureEnabled": false,
-            "package": "com.xanderssamoth.TalaPlus"
-        },
-        "web": {
-            "favicon": "./assets/favicon.png"
-        },
-        "plugins": [
-            "expo-router",
-            [
-                "expo-navigation-bar",
-                {
-                    "enforceContrast": true,
-                    "style": "light",
-                    "hidden": true
-                }
-            ],
-            "expo-video",
-            [
-                "expo-media-library",
-                {
-                    "photosPermission": "Autoriser TALA+ à accéder à vos photos afin de choisir une couverture.",
-                    "granularPermissions": [
-                        "photo",
-                        "video",
-                        "audio"
-                    ]
-                }
-            ],
-            "expo-font",
-            "expo-status-bar",
-            [
-                "expo-splash-screen",
-                {
-                    "image": "./assets/splash-icon.png",
-                    "resizeMode": "contain",
-                    "backgroundColor": "#ffffff"
-                }
-            ]
-        ],
-        "extra": {
-            "router": {},
-            "expo-navigation-bar": {
-                "enforceContrast": true,
-                "style": "light",
-                "hidden": true
-            },
-            "eas": {
-                "projectId": "6673c157-af48-4a3a-b7bf-e9d8179f5a4b"
-            }
+  "expo": {
+    "name": "TalaPlus",
+    "slug": "TalaPlus",
+    "scheme": "tala-plus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundImage": "./assets/adaptive-background.png"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "predictiveBackGestureEnabled": false,
+      "package": "com.xanderssamoth.TalaPlus"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": true,
+          "style": "light",
+          "hidden": true
         }
+      ],
+      "expo-video",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Autoriser TALA+ à accéder à vos photos afin de choisir une couverture.",
+          "granularPermissions": [
+            "photo",
+            "video",
+            "audio"
+          ]
+        }
+      ],
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "router": {},
+      "expo-navigation-bar": {
+        "enforceContrast": true,
+        "style": "light",
+        "hidden": true
+      },
+      "eas": {
+        "projectId": "6673c157-af48-4a3a-b7bf-e9d8179f5a4b"
+      }
     }
+  }
 }
