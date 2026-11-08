@@ -1,84 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import EmptyState from '@/components/EmptyState';
-import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
-import { ApiPayment, getUserPayments } from '@/lib/api';
+import { fetchPayments } from '@/lib/profile-api';
+import { apiRequest, getCurrentUser } from '@/lib/session';
 
+type Payment = Record<string, any>;
+const entityLabels: Record<string, string> = { media: 'mediaEntity', cart: 'cartEntity', user: 'userEntity', pricing: 'pricingEntity' };
+function entityDetail(payment: Payment) {
+  const data = payment.entity_data ?? payment.entityData ?? payment[payment.entity] ?? {};
+  if (payment.entity === 'media') return data.media_title ?? payment.media_title ?? '';
+  if (payment.entity === 'cart') return data.payment_code ?? payment.payment_code ?? '';
+  if (payment.entity === 'user') return [data.firstname, data.lastname].filter(Boolean).join(' ') || [payment.firstname, payment.lastname].filter(Boolean).join(' ');
+  if (payment.entity === 'pricing') return data.pricing_name ?? payment.pricing_name ?? '';
+  return '';
+}
+async function completePayment(payment: Payment): Promise<Payment> {
+  if (entityDetail(payment) || !payment.entity_id || !['media', 'cart', 'user', 'pricing'].includes(payment.entity)) return payment;
+  try {
+    const response = await apiRequest<unknown>(`/v1/${payment.entity}/${encodeURIComponent(String(payment.entity_id))}`);
+    return { ...payment, entity_data: Array.isArray(response.data) ? response.data[0] : response.data };
+  } catch { return payment; }
+}
 export default function PaymentsScreen() {
   const { t } = useTranslation();
-  const [items, setItems] = useState<ApiPayment[]>([]);
-  const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  const load = (nextPage: number) => {
-    if ((loading && items.length) || nextPage > lastPage) return;
-    setLoading(true);
-    getUserPayments(nextPage)
-      .then((result) => {
-        setItems((current) => nextPage === 1 ? result.items : [...current, ...result.items]);
-        setPage(nextPage);
-        setLastPage(result.lastPage);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load(1);
-  }, []);
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable>
-        <Text style={styles.title}>{t('payments')}</Text>
-        <View style={{ width: 24 }} />
-      </View>
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        onEndReached={() => load(page + 1)}
-        onEndReachedThreshold={0.4}
-        ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noPaymentTitle')} body={t('noPaymentBody')} />}
-        ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
-        renderItem={({ item }) => <PaymentRow payment={item} />}
-      />
-    </SafeAreaView>
-  );
+  const [items, setItems] = useState<Payment[]>([]);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(true);
+  const load = useCallback(() => { setBusy(true); fetchPayments(getCurrentUser().id).then(async r => { setItems(await Promise.all(r.items.map(completePayment))); setError(''); }).catch(e => setError(e instanceof Error ? e.message : t('requestFailed'))).finally(() => setBusy(false)); }, [t]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+  return <SafeAreaView style={styles.container}><View style={styles.header}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text}/></Pressable><Text style={styles.title}>{t('payments')}</Text><View style={{ width: 23 }}/></View>
+    <View style={styles.columnHead}><Text style={styles.column}>{t('reason')}</Text><Text style={styles.column}>{t('entity')}</Text><Text style={styles.column}>{t('entityData')}</Text></View>
+    <FlatList data={items} keyExtractor={(item, index) => String(item.id ?? index)} refreshing={busy} onRefresh={load} contentContainerStyle={styles.list} ListEmptyComponent={!busy ? <Text style={styles.muted}>{error || t('noPaymentBody')}</Text> : null} renderItem={({ item }) => <View style={styles.row}><Text style={styles.cell}>{String(item.reason ?? '')}</Text><Text style={styles.cell}>{t(entityLabels[item.entity] ?? 'entity')}</Text><Text style={styles.cell}>{entityDetail(item)}</Text></View>}/>
+  </SafeAreaView>;
 }
-
-function PaymentRow({ payment }: { payment: ApiPayment }) {
-  const statusColor = payment.status === 'successful' || payment.status === 'paid' ? '#22C55E' : payment.status === 'failed' ? '#EF4444' : '#F6C343';
-
-  return (
-    <View style={styles.item}>
-      <View style={[styles.coin, { backgroundColor: statusColor }]}>
-        <Feather name="dollar-sign" size={22} color={colors.text} />
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.paymentTitle}>{payment.title}</Text>
-        <Text style={styles.paymentMeta}>{payment.currency} {payment.amount.toFixed(2)} · {payment.status}</Text>
-        {!!payment.time && <Text style={styles.time}>{payment.time}</Text>}
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  title: { color: colors.text, fontSize: 22, fontWeight: '900' },
-  list: { padding: 16, paddingBottom: 34 },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 8, padding: 14, marginBottom: 10, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border },
-  coin: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
-  body: { flex: 1 },
-  paymentTitle: { color: colors.text, fontWeight: '900' },
-  paymentMeta: { color: colors.muted, marginTop: 4 },
-  time: { color: colors.primary, fontSize: 12, fontWeight: '800', marginTop: 6 },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, header: { padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, title: { color: colors.text, fontSize: 21, fontWeight: '900' }, list: { paddingHorizontal: 12, paddingBottom: 35 }, columnHead: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.panelLight }, column: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 12 }, row: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderColor: colors.border }, cell: { flex: 1, color: colors.text, fontSize: 12 }, muted: { color: colors.muted, padding: 20 } });

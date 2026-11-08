@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
+import PostIdentity from '@/components/PostIdentity';
 import { colors } from '@/constants/theme';
 import { ApiPost, getPost } from '@/lib/api';
 
@@ -36,11 +37,7 @@ export default function PostDetailsScreen() {
       </View>
       <View style={styles.card}>
         <View style={styles.row}>
-          {post.avatarUrl ? <Image source={{ uri: post.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{post.author.charAt(0)}</Text></View>}
-          <View>
-            <Text style={styles.author}>{post.author}</Text>
-            <Text style={styles.username}>@{post.username}</Text>
-          </View>
+          <PostIdentity post={post}/>
         </View>
         <Text style={styles.body}>{post.body}</Text>
         <PostMediaCarousel files={post.files} />

@@ -1,69 +1,38 @@
-import { useEffect, useState } from 'react';
-import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import EmptyState from '@/components/EmptyState';
-import LoadingState from '@/components/LoadingState';
+import ProfileSummary from '@/components/ProfileSummary';
 import { colors } from '@/constants/theme';
-import { ApiUserProfile, getUserProfile } from '@/lib/api';
+import { fetchProfile, fetchSubscriptions, fetchWatchlistCount, Profile } from '@/lib/profile-api';
 
 export default function UserProfileScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ id: string }>();
-  const [profile, setProfile] = useState<ApiUserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!params.id) return;
-
-    setLoading(true);
-    getUserProfile(params.id)
-      .then(setProfile)
-      .catch(() => setProfile(null))
-      .finally(() => setLoading(false));
-  }, [params.id]);
-
-  if (loading) {
-    return <SafeAreaView style={styles.container}><View style={styles.center}><LoadingState /></View></SafeAreaView>;
-  }
-
-  if (!profile) {
-    return <SafeAreaView style={styles.container}><View style={styles.center}><EmptyState title={t('profileUnavailableTitle')} body={t('profileUnavailableBody')} /></View></SafeAreaView>;
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <ImageBackground source={profile.coverUrl ? { uri: profile.coverUrl } : undefined} style={styles.cover}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={colors.text} />
-        </Pressable>
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscriptions, setSubscriptions] = useState(0);
+  const [watchlist, setWatchlist] = useState(0);
+  const [error, setError] = useState('');
+  const load = useCallback(() => {
+    if (!id) return;
+    fetchProfile(id).then(setProfile).catch(e => setError(e instanceof Error ? e.message : t('requestFailed')));
+    fetchSubscriptions(id).then(result => setSubscriptions(result.count)).catch(() => undefined);
+    fetchWatchlistCount(id).then(setWatchlist).catch(() => undefined);
+  }, [id, t]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+  return <SafeAreaView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.content}>
+      <ImageBackground source={profile?.coverUrl ? { uri: profile.coverUrl } : undefined} style={styles.cover}>
+        <Pressable style={styles.back} onPress={() => router.back()}><Feather name="arrow-left" size={22} color={colors.text}/></Pressable>
       </ImageBackground>
-      <View style={styles.content}>
-        {profile.avatarUrl ? (
-          <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatarFallback}>
-            <Text style={styles.avatarText}>{profile.name.charAt(0) || 'T'}</Text>
-          </View>
-        )}
-        <Text style={styles.name}>{profile.name}</Text>
-        {!!profile.username && <Text style={styles.username}>@{profile.username}</Text>}
-      </View>
-    </SafeAreaView>
-  );
+      {profile ? <><View style={styles.summary}><ProfileSummary profile={profile} subscriptions={subscriptions} watchlist={watchlist}/></View>
+        {([['package', 'productsServices', 'products'], ['film', 'videosAudios', 'medias']] as const).map(([icon, label, kind]) =>
+          <Pressable key={kind} style={styles.link} onPress={() => router.push({ pathname: '/profile/[kind]', params: { kind, userId: id } })}>
+            <Feather name={icon} size={19} color={colors.text}/><Text style={styles.linkText}>{t(label)}</Text><Feather name="chevron-right" size={18} color={colors.muted}/>
+          </Pressable>)}</> : <Text style={styles.message}>{error || t('loadingMedia')}</Text>}
+    </ScrollView>
+  </SafeAreaView>;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, padding: 16, justifyContent: 'center' },
-  cover: { height: 180, backgroundColor: colors.panel },
-  backButton: { width: 42, height: 42, margin: 14, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)' },
-  content: { alignItems: 'center', padding: 18 },
-  avatar: { width: 112, height: 112, borderRadius: 56, marginTop: -74, borderWidth: 4, borderColor: colors.background, backgroundColor: colors.panelLight },
-  avatarFallback: { width: 112, height: 112, borderRadius: 56, marginTop: -74, borderWidth: 4, borderColor: colors.background, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelLight },
-  avatarText: { color: colors.text, fontSize: 34, fontWeight: '900' },
-  name: { color: colors.text, fontSize: 25, fontWeight: '900', marginTop: 12 },
-  username: { color: colors.muted, marginTop: 4, fontWeight: '800' },
-});
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, content: { paddingBottom: 30 }, cover: { height: 160, marginBottom: 18, backgroundColor: colors.panel }, back: { margin: 12, width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#0009' }, summary: { paddingHorizontal: 16 }, link: { marginHorizontal: 16, marginTop: 9, padding: 16, borderRadius: 8, backgroundColor: colors.panel, flexDirection: 'row', alignItems: 'center', gap: 12 }, linkText: { flex: 1, color: colors.text, fontWeight: '800' }, message: { color: colors.muted, padding: 20 } });

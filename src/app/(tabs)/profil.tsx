@@ -1,26 +1,53 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/AppHeader';
 import { colors } from '@/constants/theme';
 import { getCurrentUser, signOut } from '@/lib/session';
-import { getAvatarSource } from '@/utils/user';
+import ProfileSummary from '@/components/ProfileSummary';
+import { fetchCart, fetchProfile, fetchSubscriptions, fetchWatchlistCount, Profile, uploadAvatar } from '@/lib/profile-api';
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const user = getCurrentUser();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscriptions, setSubscriptions] = useState(0);
+  const [watchlist, setWatchlist] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
+  const [error, setError] = useState('');
   const languageName = i18n.language === 'ln' ? 'Lingala' : i18n.language === 'en' ? 'English' : 'Francais';
-  const avatarSource = getAvatarSource(user);
+  const load = useCallback(() => {
+    fetchProfile(user.id).then(setProfile).catch(e => setError(e instanceof Error ? e.message : t('requestFailed')));
+    fetchSubscriptions(user.id).then(r => setSubscriptions(r.count)).catch(() => undefined);
+    fetchWatchlistCount(user.id).then(setWatchlist).catch(() => undefined);
+    fetchCart(user.id).then(r => setCartCount(r.count)).catch(() => undefined);
+  }, [user.id, t]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const changeAvatar = async () => {
+    const result = await DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: true });
+    if (result.canceled || !result.assets[0]) return;
+    try {
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
+      const updated = await uploadAvatar(user.id, base64);
+      setProfile(updated);
+    } catch (e) { Alert.alert(t('actionImpossible'), e instanceof Error ? e.message : t('requestFailed')); }
+  };
 
   const menu = [
-    ['clock', t('history')],
-    ['heart', t('watchlist')],
-    ['credit-card', t('subscriptions')],
-    ['dollar-sign', t('payments')],
-    ['share-2', t('referral')],
-    ['settings', t('settings')],
+    ['package', 'productsServices', '/profile/products'],
+    ['film', 'videosAudios', '/profile/medias'],
+    ['heart', 'watchlist', '/profile/watchlist'],
+    ['shopping-cart', 'cart', '/profile/cart'],
+    ['users', 'subscriptions', '/profile/subscriptions'],
+    ['credit-card', 'payments', '/payments'],
+    ['share-2', 'referral', '/profile/referral'],
+    ['settings', 'settings', '/profile/settings'],
   ];
 
   const logout = async () => {
@@ -35,41 +62,12 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <AppHeader title={t('profile')} />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.identity}>
-          {avatarSource ? (
-            <Image source={avatarSource} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>{user.firstname.charAt(0) || 'T'}</Text>
-            </View>
-          )}
-          <View style={styles.nameBlock}>
-            <Text style={styles.name}>{user.firstname} {user.lastname.charAt(0)}.</Text>
-            <Text style={styles.premium}>{t('premium')}</Text>
-            <Text style={styles.member}>{t('memberSince')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.stats}>
-          {[
-            ['120', t('videosWatched')],
-            ['45', t('subscriptions')],
-            ['12', t('watchlist')],
-          ].map(([value, label]) => (
-            <View key={label} style={styles.stat}>
-              <Text style={styles.statValue}>{value}</Text>
-              <Text style={styles.statLabel}>{label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {menu.map(([icon, label]) => (
-          <Pressable key={label} style={styles.menuItem} onPress={() => {
-            if (label === t('subscriptions')) router.push('/subscription');
-            if (label === t('payments')) router.push('/payments');
-          }}>
+        {profile ? <ProfileSummary profile={profile} subscriptions={subscriptions} watchlist={watchlist} editable onAvatar={changeAvatar} onVerify={() => router.push('/profile/verify')}/> : <Text style={styles.languageValue}>{error || t('loadingMedia')}</Text>}
+        {menu.map(([icon, label, route]) => (
+          <Pressable key={label} style={styles.menuItem} onPress={() => router.push(route as never)}>
             <Feather name={icon as keyof typeof Feather.glyphMap} size={18} color={colors.text} />
-            <Text style={styles.menuText}>{label}</Text>
+            <Text style={styles.menuText}>{t(label)}</Text>
+            {label === 'cart' && cartCount > 0 && <Text style={styles.languageValue}>{cartCount}</Text>}
             <Feather name="chevron-right" size={18} color={colors.muted} />
           </Pressable>
         ))}
@@ -80,10 +78,10 @@ export default function ProfileScreen() {
           <Text style={styles.languageValue}>{languageName}</Text>
         </Pressable>
 
-        <Pressable style={styles.partner} onPress={() => router.push('/partner')}>
+        {!!profile?.promoCode && <Pressable style={styles.partner} onPress={() => router.push('/partner')}>
           <Text style={styles.partnerTitle}>{t('partnerTitle')}</Text>
           <Text style={styles.partnerText}>{t('partnerText')}</Text>
-        </Pressable>
+        </Pressable>}
 
         <Pressable style={styles.logoutButton} onPress={logout}>
           <Feather name="log-out" size={18} color={colors.text} />

@@ -26,6 +26,9 @@ type UserPayload = {
   api_token?: string | null;
   token?: string | null;
   access_token?: string | null;
+  plain_text_token?: string | null;
+  plainTextToken?: string | null;
+  user?: UserPayload | null;
 };
 
 type SignUpResponseData = {
@@ -43,6 +46,7 @@ export type AppUser = {
   password?: string;
   avatar_url: string;
   token?: string;
+  isVisitor?: boolean;
 };
 
 export class ApiError extends Error {
@@ -74,6 +78,10 @@ export async function restoreSession() {
     if (!stored) return null;
     const parsed = JSON.parse(stored) as AppUser;
     if (!parsed?.id || !parsed?.username) return null;
+    if (!parsed.token && !parsed.isVisitor) {
+      await persistSession(null);
+      return null;
+    }
     currentUser = parsed;
     return currentUser;
   } catch {
@@ -126,8 +134,21 @@ function getErrorMessage(body: ApiResponse<unknown> | null, fallback: string) {
   return formatErrors(body?.errors) ?? formatMessage(body?.message) ?? fallback;
 }
 
-function normalizeUser(payload: unknown): AppUser {
-  const user = (Array.isArray(payload) ? payload[0] : payload) as UserPayload | undefined;
+function extractToken(...sources: unknown[]): string | undefined {
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') continue;
+    const data = source as Record<string, unknown>;
+    for (const key of ['api_token', 'token', 'access_token', 'plain_text_token', 'plainTextToken']) {
+      const value = data[key];
+      if (typeof value === 'string' && value.trim()) return value.trim().replace(/^Bearer\s+/i, '');
+    }
+  }
+  return undefined;
+}
+
+function normalizeUser(payload: unknown, token?: string): AppUser {
+  const raw = (Array.isArray(payload) ? payload[0] : payload) as UserPayload | undefined;
+  const user = raw?.user && typeof raw.user === 'object' ? raw.user : raw;
 
   if (!user || typeof user !== 'object') {
     throw new ApiError('La r\u00e9ponse du serveur ne contient pas les donn\u00e9es utilisateur.');
@@ -146,20 +167,20 @@ function normalizeUser(payload: unknown): AppUser {
     username,
     password: user.password ?? undefined,
     avatar_url: user.avatar_url ?? user.avatar ?? '',
-    token: user.api_token ?? user.token ?? user.access_token ?? undefined,
+    token: token ?? extractToken(user, raw),
   };
 }
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}) {
   let response: Response;
   const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
-  const headers = {
-    Accept: 'application/json',
-    ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
-    'X-localization': i18n.language || 'fr',
-    ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
-    ...init.headers,
-  };
+  const headers = new Headers(init.headers);
+  headers.set('Accept', 'application/json');
+  if (!isFormData) headers.set('Content-Type', 'application/json');
+  else headers.delete('Content-Type');
+  headers.set('X-localization', i18n.language || 'fr');
+  if (path === '/v1/user/login') headers.delete('Authorization');
+  else if (currentUser?.token) headers.set('Authorization', `Bearer ${currentUser.token}`);
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -196,7 +217,11 @@ export async function signIn(identifier: string, password: string) {
     }),
   });
 
-  currentUser = normalizeUser(body.data);
+  const data = body.data as unknown;
+  const userData = (Array.isArray(data) ? data[0] : data) as UserPayload | undefined;
+  const token = userData?.api_token?.trim().replace(/^Bearer\s+/i, '');
+  if (!token) throw new ApiError('La réponse LOGIN ne contient pas data.api_token. Veuillez réessayer.');
+  currentUser = normalizeUser(data, token);
   await persistSession(currentUser);
   return currentUser;
 }
@@ -204,7 +229,7 @@ export async function signIn(identifier: string, password: string) {
 export async function signInAsVisitor(username: string) {
   const body = await apiRequest<UserPayload>(`/v1/user/username/${encodeURIComponent(username.trim())}`);
 
-  currentUser = normalizeUser(body.data);
+  currentUser = { ...normalizeUser(body.data), isVisitor: true };
   await persistSession(currentUser);
   return currentUser;
 }
@@ -242,7 +267,11 @@ export async function signUp(data: Partial<Pick<AppUser, 'firstname' | 'lastname
     body: JSON.stringify(payload),
   });
 
-  currentUser = normalizeUser(body.data?.user ?? body.data);
+  const signupData = body.data as unknown;
+  const signupToken = extractToken(body, signupData, body.data?.user);
+  if (!signupToken && password) return signIn(payload.username, password);
+  if (!signupToken) throw new ApiError('Le serveur n’a pas fourni de token d’accès pour ce compte. Connectez-vous.');
+  currentUser = normalizeUser(body.data?.user ?? body.data, signupToken);
   await persistSession(currentUser);
   return currentUser;
 }
@@ -254,6 +283,12 @@ export async function signOut() {
 
 export function getCurrentUser() {
   return currentUser ?? fallbackUser;
+}
+
+export async function updateCurrentUser(values: Partial<AppUser>) {
+  if (!currentUser) return;
+  currentUser = { ...currentUser, ...values };
+  await persistSession(currentUser);
 }
 
 /** A session is kept for the whole lifetime of the application.  Routing must

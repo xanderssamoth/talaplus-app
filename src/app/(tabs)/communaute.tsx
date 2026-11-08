@@ -7,6 +7,7 @@ import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
+import PostIdentity from '@/components/PostIdentity';
 import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiConversation, ApiMessage, ApiPost, getConversationMessages, getConversations, getNewsFeed, sendMessage } from '@/lib/api';
@@ -217,11 +218,7 @@ function PostCard({ post }: { post: ApiPost }) {
   return (
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
-        {post.avatarUrl ? <Image source={{ uri: post.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.threadInitial}>{post.author.charAt(0)}</Text></View>}
-        <View style={styles.threadBody}>
-          <Text style={styles.threadTitle}>{post.author}</Text>
-          <Text style={styles.threadSubtitle}>@{post.username}</Text>
-        </View>
+        <PostIdentity post={post}/>
       </View>
       <Text style={styles.postBody}>{post.body}</Text>
       {!!mediaFiles.length && <PostMediaCarousel files={mediaFiles} />}

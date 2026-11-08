@@ -63,6 +63,8 @@ export type ApiPostFile = {
 
 export type ApiPost = {
   id: string;
+  userId?: string;
+  userType?: string;
   author: string;
   username: string;
   body: string;
@@ -522,6 +524,8 @@ export function normalizePost(item: unknown): ApiPost {
   return {
     id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
     author: pickUserName(user ?? source),
+    userId: pickString(user ?? source, ['id', 'user_id']) || pickString(source, ['user_id']),
+    userType: pickString(user ?? source, ['type']),
     username: pickString(user ?? source, ['username', 'email'], 'tala_officiel'),
     body: pickLocalizedString(source, ['comment_content', 'body', 'comment', 'content', 'description', 'text']),
     image: files.find((file) => ['photo', 'image'].includes(file.type))?.url ?? pickImage(source),

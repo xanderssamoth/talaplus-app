@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
+import PostIdentity from '@/components/PostIdentity';
 import { colors } from '@/constants/theme';
 import { ApiPost, getNewsFeed } from '@/lib/api';
 
@@ -61,11 +62,7 @@ function PostRow({ post }: { post: ApiPost }) {
   return (
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
-        {post.avatarUrl ? <Image source={{ uri: post.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{post.author.charAt(0)}</Text></View>}
-        <View style={styles.authorBlock}>
-          <Text style={styles.author}>{post.author}</Text>
-          <Text style={styles.username}>@{post.username}</Text>
-        </View>
+        <PostIdentity post={post}/>
       </View>
       <LinkedPostText text={post.body} />
       <PostMediaCarousel files={post.files} />

@@ -11,6 +11,7 @@ import PostMediaCarousel from '@/components/PostMediaCarousel';
 import SectionTitle from '@/components/SectionTitle';
 import MediaCover from '@/components/MediaCover';
 import ShareSheet from '@/components/ShareSheet';
+import PostIdentity from '@/components/PostIdentity';
 import { colors } from '@/constants/theme';
 import { ApiHashtag, ApiMedia, ApiPost, getHashtags, getNewsFeed, getPopularMedia, getRecentMedia } from '@/lib/api';
 
@@ -160,15 +161,7 @@ function PostCard({ post, menuOpen, onToggleMenu, onCloseMenu }: { post: ApiPost
     <View style={styles.postCard}>
       {menuOpen && <Pressable style={styles.menuDismissLayer} onPress={onCloseMenu} />}
       <View style={styles.postHeader}>
-        {post.avatarUrl ? (
-          <Image source={{ uri: post.avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatar}><Text style={styles.avatarText}>{post.author.charAt(0)}</Text></View>
-        )}
-        <View style={styles.postAuthorBlock}>
-          <Text style={styles.postAuthor}>{post.author}</Text>
-          <Text style={styles.postUsername}>@{post.username}</Text>
-        </View>
+        <PostIdentity post={post}/>
         <Pressable style={styles.postMenuButton} onPress={onToggleMenu}>
           <Feather name="chevron-down" size={20} color={colors.muted} />
         </Pressable>
