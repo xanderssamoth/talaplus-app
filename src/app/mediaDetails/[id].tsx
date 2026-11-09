@@ -9,6 +9,7 @@ import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
 import MediaCover from '@/components/MediaCover';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { colors } from '@/constants/theme';
 import { addToWatchlist, ApiMedia, ApiMediaStats, ApiPost, createMediaComment, getMedia, getMediaChildren, getMediaComments, getMediaStats, getRelatedMedia, getUserWatchlist, isFollowingUser, likeComment, likeMedia, removeFromWatchlist, toggleSubscription } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
@@ -184,7 +185,7 @@ export default function MediaDetailsScreen() {
           <View style={styles.publisherRow}>
             {media.avatarUrl ? <Image source={{ uri: media.avatarUrl }} style={styles.publisherAvatar} /> : <View style={styles.publisherAvatar}><Text style={styles.avatarText}>{(media.username || 'T').charAt(0)}</Text></View>}
             <View style={styles.publisherBody}>
-              <Text style={styles.publisherName}>@{media.username || 'talaplus'}</Text>
+              <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => media.userId && router.push(`/user/${media.userId}`)}><Text style={styles.publisherName}>@{media.username || 'talaplus'}</Text><LiveVerifiedMark userId={media.userId}/></Pressable>
               <Text style={styles.publisherMeta}>{channelLabel(media.type, t)}</Text>
             </View>
             {!isOwner && (
@@ -326,7 +327,7 @@ function CommentCard({ comment, onLike }: { comment: ApiPost; onLike: () => void
       <View style={styles.commentTop}>
         {comment.avatarUrl ? <Image source={{ uri: comment.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{comment.author.charAt(0)}</Text></View>}
         <View style={styles.commentBody}>
-          <Text style={styles.commentAuthor}>{comment.author}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.commentAuthor}>{comment.author}</Text><LiveVerifiedMark userId={comment.userId} initialType={comment.userType}/></View>
           <Text style={styles.commentUsername}>@{comment.username}</Text>
           <Text style={styles.commentText}>{comment.body}</Text>
           <PostMediaCarousel files={comment.files} compact />

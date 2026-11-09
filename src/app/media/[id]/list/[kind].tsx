@@ -9,6 +9,7 @@ import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import { colors } from '@/constants/theme';
 import MediaCover from '@/components/MediaCover';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { ApiMedia, ApiPost, getMediaChildren, getMediaComments, getRelatedMedia, likeComment } from '@/lib/api';
 
 export default function MediaMoreListScreen() {
@@ -121,7 +122,7 @@ function CommentRow({ comment }: { comment: ApiPost }) {
       <View style={styles.commentHeader}>
         {comment.avatarUrl ? <Image source={{ uri: comment.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{comment.author.charAt(0)}</Text></View>}
         <View>
-          <Text style={styles.commentAuthor}>{comment.author}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.commentAuthor}>{comment.author}</Text><LiveVerifiedMark userId={comment.userId} initialType={comment.userType}/></View>
           <Text style={styles.commentUsername}>@{comment.username}</Text>
         </View>
       </View>

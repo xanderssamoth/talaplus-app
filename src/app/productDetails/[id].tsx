@@ -9,6 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import ShareSheet from '@/components/ShareSheet';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { colors } from '@/constants/theme';
 import { ApiPost, ApiProduct, getProduct, getProductComments } from '@/lib/api';
 
@@ -80,6 +81,7 @@ export default function ProductDetailsScreen() {
 
         <Image source={product.image ? { uri: product.image } : require('../../../assets/covers/cover-product.png')} style={styles.image} />
         <Text style={styles.title}>{product.name}</Text>
+        {!!product.username && <Pressable onPress={() => product.userId && router.push(`/user/${product.userId}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 8 }}><Text style={{ color: colors.text, fontWeight: '800' }}>@{product.username}</Text><LiveVerifiedMark userId={product.userId}/></Pressable>}
         {!!product.category && <Text style={styles.category}>{product.category}</Text>}
         <Text style={styles.rating}>★ {product.rating?.toFixed(1) ?? '4.5'}</Text>
         <View style={styles.priceRow}>
@@ -106,7 +108,7 @@ export default function ProductDetailsScreen() {
               <View key={comment.id} style={styles.commentRow}>
                 {comment.avatarUrl ? <Image source={{ uri: comment.avatarUrl }} style={styles.commentAvatar} /> : <View style={styles.commentAvatar}><Text style={styles.commentAvatarText}>{comment.author.charAt(0)}</Text></View>}
                 <View style={styles.commentBody}>
-                  <Text style={styles.commentAuthor}>{comment.author}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.commentAuthor}>{comment.author}</Text><LiveVerifiedMark userId={comment.userId} initialType={comment.userType}/></View>
                   <Text style={styles.commentUsername}>@{comment.username}</Text>
                   <Text style={styles.commentText}>{comment.body}</Text>
                   <PostMediaCarousel files={comment.files} compact />

@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import PostIdentity from '@/components/PostIdentity';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import ShareSheet from '@/components/ShareSheet';
 import { colors } from '@/constants/theme';
 import { ApiConversation, ApiMessage, ApiPost, getConversationMessages, getConversations, getNewsFeed, sendMessage } from '@/lib/api';
@@ -124,7 +125,7 @@ function ConversationRow({ conversation, onPress }: { conversation: ApiConversat
     <Pressable style={styles.thread} onPress={onPress}>
       {conversation.avatarUrl ? <Image source={{ uri: conversation.avatarUrl }} style={styles.threadAvatar} /> : <View style={styles.threadAvatar}><Text style={styles.threadInitial}>{conversation.title.charAt(0)}</Text></View>}
       <View style={styles.threadBody}>
-        <Text style={styles.threadTitle}>{conversation.title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.threadTitle}>{conversation.title}</Text>{conversation.kind === 'user' && <LiveVerifiedMark userId={conversation.peerUserId}/>}</View>
         <Text style={styles.threadSubtitle} numberOfLines={1}>{conversation.subtitle}</Text>
       </View>
       <View style={styles.threadMeta}>

@@ -30,6 +30,9 @@ export type ApiMedia = {
 
 export type ApiProduct = {
   id: string;
+  userId?: string;
+  username?: string;
+  avatarUrl?: string;
   name: string;
   description: string;
   image: string;
@@ -450,7 +453,7 @@ export function normalizeMedia(item: unknown): ApiMedia {
     views: pickNumber(progress ?? source, ['views', 'view_count', 'progress_count']),
     isInWatchlist: pickBoolean(progress ?? source, ['is_in_watchlist', 'isInWatchlist', 'in_watchlist']),
     isLiked: pickBoolean(progress ?? source, ['is_liked', 'liked', 'has_liked']),
-    userId: pickString(user ?? source, ['user_id', 'id']),
+    userId: user ? pickString(user, ['id', 'user_id']) : pickString(source, ['user_id']),
     username: pickString(user ?? source, ['username', 'email']),
     avatarUrl: pickString(user ?? source, ['avatar_url', 'avatar']),
     categories,
@@ -464,9 +467,13 @@ export function normalizeMedia(item: unknown): ApiMedia {
 export function normalizeProduct(item: unknown): ApiProduct {
   const source = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
   const category = pickObject(source, ['category']);
+  const user = pickObject(source, ['user', 'seller', 'publisher']);
 
   return {
     id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
+    userId: user ? pickString(user, ['id', 'user_id']) : pickString(source, ['user_id']),
+    username: pickString(user ?? source, ['username']),
+    avatarUrl: pickString(user ?? source, ['avatar_url', 'avatar']),
     name: pickLocalizedString(source, ['product_name', 'name', 'title'], 'Produit'),
     description: pickLocalizedString(source, ['product_description', 'description', 'body', 'content']),
     image: pickImage(source),
@@ -524,7 +531,7 @@ export function normalizePost(item: unknown): ApiPost {
   return {
     id: pickString(source, ['id', 'uuid'], `${Date.now()}`),
     author: pickUserName(user ?? source),
-    userId: pickString(user ?? source, ['id', 'user_id']) || pickString(source, ['user_id']),
+    userId: user ? pickString(user, ['id', 'user_id']) : pickString(source, ['user_id']),
     userType: pickString(user ?? source, ['type']),
     username: pickString(user ?? source, ['username', 'email'], 'tala_officiel'),
     body: pickLocalizedString(source, ['comment_content', 'body', 'comment', 'content', 'description', 'text']),

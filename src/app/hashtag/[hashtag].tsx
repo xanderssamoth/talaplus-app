@@ -9,6 +9,7 @@ import LoadingState from '@/components/LoadingState';
 import PostMediaCarousel from '@/components/PostMediaCarousel';
 import { colors } from '@/constants/theme';
 import MediaCover from '@/components/MediaCover';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { ApiMedia, ApiPost, getHashtagEntities } from '@/lib/api';
 
 type Tab = 'media' | 'comments';
@@ -105,7 +106,7 @@ function CommentCard({ post }: { post: ApiPost }) {
       <View style={styles.commentHeader}>
         {post.avatarUrl ? <Image source={{ uri: post.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.avatarText}>{post.author.charAt(0)}</Text></View>}
         <View style={styles.commentAuthorBlock}>
-          <Text style={styles.commentAuthor}>{post.author}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.commentAuthor}>{post.author}</Text><LiveVerifiedMark userId={post.userId} initialType={post.userType}/></View>
           <Text style={styles.commentUsername}>@{post.username}</Text>
         </View>
         <View style={styles.commentType}>

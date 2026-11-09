@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '@/constants/theme';
 import { ApiUserProfile, getUserConnections, shareEntity } from '@/lib/api';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 
 export type ShareEntity = 'media' | 'post' | 'product';
 
@@ -84,7 +85,7 @@ export default function ShareSheet({ visible, entity, entityId, onClose }: Share
             {connections.map((user) => (
               <Pressable key={user.id} style={styles.person} onPress={openConnections}>
                 {user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatarFallback}><Text style={styles.avatarText}>{user.name.charAt(0) || 'T'}</Text></View>}
-                <Text style={styles.personName} numberOfLines={2}>{user.username || user.name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Text style={styles.personName} numberOfLines={2}>{user.username || user.name}</Text><LiveVerifiedMark userId={user.id} size={14}/></View>
               </Pressable>
             ))}
             <Pressable style={styles.person} onPress={openConnections}>

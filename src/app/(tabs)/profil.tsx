@@ -10,20 +10,20 @@ import AppHeader from '@/components/AppHeader';
 import { colors } from '@/constants/theme';
 import { getCurrentUser, signOut } from '@/lib/session';
 import ProfileSummary from '@/components/ProfileSummary';
-import { fetchCart, fetchProfile, fetchSubscriptions, fetchWatchlistCount, Profile, uploadAvatar } from '@/lib/profile-api';
+import { fetchCart, fetchFollowers, fetchProfile, fetchWatchlistCount, Profile, uploadAvatar } from '@/lib/profile-api';
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const user = getCurrentUser();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [subscriptions, setSubscriptions] = useState(0);
+  const [followers, setFollowers] = useState(0);
   const [watchlist, setWatchlist] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const [error, setError] = useState('');
   const languageName = i18n.language === 'ln' ? 'Lingala' : i18n.language === 'en' ? 'English' : 'Francais';
   const load = useCallback(() => {
     fetchProfile(user.id).then(setProfile).catch(e => setError(e instanceof Error ? e.message : t('requestFailed')));
-    fetchSubscriptions(user.id).then(r => setSubscriptions(r.count)).catch(() => undefined);
+    fetchFollowers(user.id).then(r => setFollowers(r.count)).catch(() => undefined);
     fetchWatchlistCount(user.id).then(setWatchlist).catch(() => undefined);
     fetchCart(user.id).then(r => setCartCount(r.count)).catch(() => undefined);
   }, [user.id, t]);
@@ -62,7 +62,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <AppHeader title={t('profile')} />
       <ScrollView contentContainerStyle={styles.content}>
-        {profile ? <ProfileSummary profile={profile} subscriptions={subscriptions} watchlist={watchlist} editable onAvatar={changeAvatar} onVerify={() => router.push('/profile/verify')}/> : <Text style={styles.languageValue}>{error || t('loadingMedia')}</Text>}
+        {profile ? <ProfileSummary profile={profile} followers={followers} watchlist={watchlist} editable onAvatar={changeAvatar} onVerify={() => router.push('/profile/verify')}/> : <Text style={styles.languageValue}>{error || t('loadingMedia')}</Text>}
         {menu.map(([icon, label, route]) => (
           <Pressable key={label} style={styles.menuItem} onPress={() => router.push(route as never)}>
             <Feather name={icon as keyof typeof Feather.glyphMap} size={18} color={colors.text} />

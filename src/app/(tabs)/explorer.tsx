@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { colors } from '@/constants/theme';
 import { ApiUserProfile, getEntrepreneurs } from '@/lib/api';
 
@@ -135,7 +137,7 @@ function EntrepreneurCard({ entrepreneur }: { entrepreneur: ApiUserProfile }) {
     <View style={styles.proCard}>
       {entrepreneur.avatarUrl ? <Image source={{ uri: entrepreneur.avatarUrl }} style={styles.avatar} /> : <View style={styles.avatar}><Text style={styles.initial}>{entrepreneur.name.charAt(0)}</Text></View>}
       <View style={styles.proInfo}>
-        <Text style={styles.proName} numberOfLines={1}>{entrepreneur.name}</Text>
+        <Pressable onPress={() => router.push(`/user/${entrepreneur.id}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.proName} numberOfLines={1}>{entrepreneur.name}</Text><LiveVerifiedMark userId={entrepreneur.id}/></Pressable>
         <Text style={styles.meta} numberOfLines={1}>{[entrepreneur.country, entrepreneur.city, entrepreneur.category].filter(Boolean).join(' · ')}</Text>
         <Text style={styles.rating}>★ {entrepreneur.rating?.toFixed(1) ?? '4.5'} ({entrepreneur.reviews ?? 0} {t('reviews')})</Text>
         <Text style={styles.description} numberOfLines={2}>{entrepreneur.description || t('businessSubtitle')}</Text>

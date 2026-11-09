@@ -38,10 +38,12 @@ async function fetchList(path: string) {
   return { items: array(response.data), count: response.count ?? array(response.data).length, lastPage: response.lastPage ?? 1 };
 }
 export const fetchSubscriptions = (id: string) => fetchList(`/v1/subscription/user/${encodeURIComponent(id)}/subscriptions`);
+export const fetchFollowers = (id: string) => fetchList(`/v1/subscription/user/${encodeURIComponent(id)}/followers`);
 export const fetchReferrees = (id: string) => fetchList(`${userPath(id)}/referrees`);
 export const fetchCart = (id: string) => fetchList(`${userPath(id)}/cart`);
 export const fetchUserProducts = async (id: string): Promise<ApiProduct[]> => (await fetchList(`${userPath(id)}/products`)).items.map(normalizeProduct);
 export const fetchUserMedias = async (id: string): Promise<ApiMedia[]> => (await fetchList(`${userPath(id)}/medias`)).items.map(normalizeMedia);
+export const fetchUserMediaCount = async (id: string) => (await fetchList(`${userPath(id)}/medias`)).count;
 export const fetchWatchlist = async (id: string): Promise<ApiMedia[]> => (await fetchList(`${userPath(id)}/watchlist`)).items.map(normalizeMedia);
 export const fetchWatchlistCount = async (id: string) => (await fetchList(`${userPath(id)}/watchlist`)).count;
 export const fetchPayments = (id: string) => fetchList(`${userPath(id)}/payments`);
@@ -60,8 +62,8 @@ export function uploadIdCard(id: string, file: { uri: string; name: string; mime
   form.append('files[]', { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
   return apiRequest(`${userPath(id)}/file`, { method: 'POST', body: form });
 }
-export async function activatePremium(id: string, months: number, type: 1 | 2, channel: string) {
-  const response = await apiRequest<unknown>(`${userPath(id)}/premium/activate`, { method: 'POST', body: JSON.stringify({ months, type, channel }) });
+export async function activatePremium(id: string, months: number, type: 1 | 2, channel: string, phone?: string) {
+  const response = await apiRequest<unknown>(`${userPath(id)}/premium/activate`, { method: 'POST', body: JSON.stringify({ months, type, channel, ...(type === 1 ? { phone: phone?.trim() } : {}) }) });
   const data = object(response.data);
   return { url: string(data.url || object(data.data).url || object(response).url) };
 }

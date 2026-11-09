@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
 import LoadingState from '@/components/LoadingState';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { colors } from '@/constants/theme';
 import { ApiUserProfile, getUserConnections } from '@/lib/api';
 
@@ -69,7 +70,7 @@ function ConnectionRow({ user }: { user: ApiUserProfile }) {
         </View>
       )}
       <View style={styles.body}>
-        <Text style={styles.name}>{user.name}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.name}>{user.name}</Text><LiveVerifiedMark userId={user.id}/></View>
         {!!user.username && <Text style={styles.username}>@{user.username}</Text>}
       </View>
       <Feather name="send" size={19} color={colors.primary} />

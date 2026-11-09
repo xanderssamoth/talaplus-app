@@ -10,6 +10,7 @@ import LoadingState from '@/components/LoadingState';
 import { colors } from '@/constants/theme';
 import ShareSheet from '@/components/ShareSheet';
 import MediaCover from '@/components/MediaCover';
+import LiveVerifiedMark from '@/components/LiveVerifiedMark';
 import { addToWatchlist, ApiMedia, getMedia, getUserWatchlist, likeMedia, removeFromWatchlist, saveMediaProgress } from '@/lib/api';
 
 export default function PlayerScreen() {
@@ -211,7 +212,7 @@ export default function PlayerScreen() {
           <Pressable onPress={() => setTitleExpanded((current) => !current)}>
             <Text style={[styles.playerTitle, titleExpanded && styles.playerTitleExpanded]} numberOfLines={titleExpanded ? undefined : 1}>{media.title}</Text>
           </Pressable>
-          <Text style={styles.playerSubtitle}>{channelLabel(media.type, t)}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.playerSubtitle}>@{media.username || 'talaplus'} · {channelLabel(media.type, t)}</Text><LiveVerifiedMark userId={media.userId}/></View>
 
           <View
             style={styles.progressTrack}
@@ -250,6 +251,7 @@ function AudioPlayer({ media, player, duration, currentTime, progress, progressW
     <View style={styles.audioHeader}><Pressable onPress={onBack}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable><Text style={styles.audioHeaderTitle}>{t('audioPlayer')}</Text><Feather name="more-vertical" size={24} color={colors.text} /></View>
     <View style={styles.audioContent}>
       <Text style={styles.audioTitle} numberOfLines={2}>{media.title}</Text><Text style={styles.audioAuthor}>{media.author || media.username || 'TALA+'}</Text>
+      {!!media.username && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.audioAuthor}>@{media.username}</Text><LiveVerifiedMark userId={media.userId}/></View>}
       <MediaCover uri={media.thumbnail} isAudio style={styles.audioCover} />
       <View style={styles.audioProgress} onLayout={(event) => setProgressWidth(event.nativeEvent.layout.width)} onStartShouldSetResponder={() => true} onMoveShouldSetResponder={() => true} onResponderGrant={onSeek} onResponderMove={onSeek}><View style={[styles.audioProgressFill, { width: `${progress * 100}%` }]} /><View style={[styles.audioThumb, { left: `${progress * 100}%` }]} /></View>
       <View style={styles.times}><Text style={styles.audioTime}>{formatTime(currentTime)}</Text><Text style={styles.audioTime}>{formatTime(duration)}</Text></View>

@@ -358,6 +358,7 @@ const en = {
   chooseCoverFromPhone: 'Choose an image from the phone',
   newAudio: 'New audio', newMessage: 'New message', publishAudio: 'Publish audio', chooseAudio: 'Choose audio', selectAudio: 'Select an audio file', chooseAudioFile: 'Choose an audio file', audioInfo: 'Audio information', accessAndPrice: 'Access & pricing', audioTitle: 'Audio title', audioAuthor: 'Author / performer', addAudioCover: 'Add a cover', audio: 'Audio', audioAccessHint: 'Available to everyone', requiredAudioTitle: 'Audio required', requiredAudioBody: 'Choose an audio file from your device.', incompleteAudioInfoBody: 'Add a title, description and author.', audioPublished: 'Audio published', audioPublishedBody: 'Your audio has been sent to the server.', searchRecipient: 'Search a person or group', connections: 'Connections', group: 'Group',
   verified: 'Verified', verificationPending: 'Pending', verifyAccount: 'Verify my account', memberSinceDynamic: 'Member since {{date}}',
+  unsubscribe: 'Unsubscribe', paymentPhone: 'Phone number', phoneRequired: 'Enter a phone number for Mobile money.',
   mediaViewedOne: 'Media viewed', mediaViewedMany: 'Media viewed', mediaPlayedOne: 'Media played', mediaPlayedMany: 'Media played', subscriptionOne: 'Subscription', subscriptionMany: 'Subscriptions',
   productsServices: 'Products/Services', videosAudios: 'Videos/Audio', cart: 'Cart', retry: 'Retry',
   idCardRequired: 'Please select your ID card.', invalidPlanDuration: 'Invalid plan duration.', paymentUrlMissing: 'Payment link unavailable.',
