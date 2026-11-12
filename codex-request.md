@@ -124,3 +124,10 @@ Dans les cas, que l'utilisateur clique sur « OK » pour "Mobile money", ou sur 
         ->> En tenant compte de la colonne "date" de la branche JSON "days" qui est incluse dans la branche JSON "weeks" de la branche "referral", tu peux calculer le pourcentage de fréquence pour remplacer "+16%" par une valeur numérique dynamique ;
     -> Le graphique "Évolution des revenus" : Ce graphique s'affiche selon l'API Endpoint "GET : https://admin.talaplus.tv/api/v1/user/{userId}/earning-stats" ("userId" sur l'URL est l'ID de l'utilisateur en cours. Et il faut récupérer la branche JSON "days" sous branche de "weeks ["end_date" doit être la plus récente]" qui est sous branche de "referral"). Et cette branche JSON "days" contient les jours qui serviront pour le graphique.
 
+============
+Toujours pour l'utilisateur (onglet "Profil") :
+============
+
+Juste après le lien "Parrainage", mets le lien "Porte-monnaie" qui affichera :
+- une fenêtre contenant le montant (monnaie virtuel) de l'utilisateur en cours
+

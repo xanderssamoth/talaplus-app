@@ -1,5 +1,5 @@
 import { apiRequest, getCurrentUser, updateCurrentUser } from '@/lib/session';
-import { ApiMedia, ApiProduct, normalizeMedia, normalizeProduct } from '@/lib/api';
+import { ApiMedia, ApiPost, ApiProduct, normalizeMedia, normalizePost, normalizeProduct } from '@/lib/api';
 
 type Raw = Record<string, any>;
 const object = (value: unknown): Raw => value && typeof value === 'object' && !Array.isArray(value) ? value as Raw : {};
@@ -44,6 +44,10 @@ export const fetchCart = (id: string) => fetchList(`${userPath(id)}/cart`);
 export const fetchUserProducts = async (id: string): Promise<ApiProduct[]> => (await fetchList(`${userPath(id)}/products`)).items.map(normalizeProduct);
 export const fetchUserMedias = async (id: string): Promise<ApiMedia[]> => (await fetchList(`${userPath(id)}/medias`)).items.map(normalizeMedia);
 export const fetchUserMediaCount = async (id: string) => (await fetchList(`${userPath(id)}/medias`)).count;
+export async function fetchUserPosts(id: string, page = 1): Promise<{ items: ApiPost[]; count: number; lastPage: number }> {
+  const result = await fetchList(`${userPath(id)}/posts?page=${page}`);
+  return { ...result, items: result.items.map(normalizePost).filter(post => !post.userId || post.userId === id) };
+}
 export const fetchWatchlist = async (id: string): Promise<ApiMedia[]> => (await fetchList(`${userPath(id)}/watchlist`)).items.map(normalizeMedia);
 export const fetchWatchlistCount = async (id: string) => (await fetchList(`${userPath(id)}/watchlist`)).count;
 export const fetchPayments = (id: string) => fetchList(`${userPath(id)}/payments`);
