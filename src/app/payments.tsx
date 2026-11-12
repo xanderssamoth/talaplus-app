@@ -10,23 +10,33 @@ import { apiRequest, getCurrentUser } from '@/lib/session';
 
 type Payment = Record<string, any>;
 const entityLabels: Record<string, string> = { media: 'mediaEntity', cart: 'cartEntity', user: 'userEntity', pricing: 'pricingEntity' };
-function entityDetail(payment: Payment) {
+function displayValue(value: unknown, language: string): string {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(item => displayValue(item, language)).filter(Boolean).join(', ');
+  if (typeof value !== 'object') return '';
+  const object = value as Record<string, unknown>;
+  const localized = object[language] ?? object.fr ?? object.en ?? object.ln;
+  if (localized !== undefined) return displayValue(localized, language);
+  return displayValue(object.name ?? object.title ?? object.label, language);
+}
+function entityDetail(payment: Payment, language: string) {
   const data = payment.entity_data ?? payment.entityData ?? payment[payment.entity] ?? {};
-  if (payment.entity === 'media') return data.media_title ?? payment.media_title ?? '';
-  if (payment.entity === 'cart') return data.payment_code ?? payment.payment_code ?? '';
-  if (payment.entity === 'user') return [data.firstname, data.lastname].filter(Boolean).join(' ') || [payment.firstname, payment.lastname].filter(Boolean).join(' ');
-  if (payment.entity === 'pricing') return data.pricing_name ?? payment.pricing_name ?? '';
+  if (payment.entity === 'media') return displayValue(data.media_title ?? payment.media_title, language);
+  if (payment.entity === 'cart') return displayValue(data.payment_code ?? payment.payment_code, language);
+  if (payment.entity === 'user') return [data.firstname ?? payment.firstname, data.lastname ?? payment.lastname].map(value => displayValue(value, language)).filter(Boolean).join(' ');
+  if (payment.entity === 'pricing') return displayValue(data.pricing_name ?? payment.pricing_name, language);
   return '';
 }
 async function completePayment(payment: Payment): Promise<Payment> {
-  if (entityDetail(payment) || !payment.entity_id || !['media', 'cart', 'user', 'pricing'].includes(payment.entity)) return payment;
+  if (entityDetail(payment, 'fr') || !payment.entity_id || !['media', 'cart', 'user', 'pricing'].includes(payment.entity)) return payment;
   try {
     const response = await apiRequest<unknown>(`/v1/${payment.entity}/${encodeURIComponent(String(payment.entity_id))}`);
     return { ...payment, entity_data: Array.isArray(response.data) ? response.data[0] : response.data };
   } catch { return payment; }
 }
 export default function PaymentsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState<Payment[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
@@ -34,7 +44,7 @@ export default function PaymentsScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
   return <SafeAreaView style={styles.container}><View style={styles.header}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text}/></Pressable><Text style={styles.title}>{t('payments')}</Text><View style={{ width: 23 }}/></View>
     <View style={styles.columnHead}><Text style={styles.column}>{t('reason')}</Text><Text style={styles.column}>{t('entity')}</Text><Text style={styles.column}>{t('entityData')}</Text></View>
-    <FlatList data={items} keyExtractor={(item, index) => String(item.id ?? index)} refreshing={busy} onRefresh={load} contentContainerStyle={styles.list} ListEmptyComponent={!busy ? <Text style={styles.muted}>{error || t('noPaymentBody')}</Text> : null} renderItem={({ item }) => <View style={styles.row}><Text style={styles.cell}>{String(item.reason ?? '')}</Text><Text style={styles.cell}>{t(entityLabels[item.entity] ?? 'entity')}</Text><Text style={styles.cell}>{entityDetail(item)}</Text></View>}/>
+    <FlatList data={items} keyExtractor={(item, index) => String(item.id ?? index)} refreshing={busy} onRefresh={load} contentContainerStyle={styles.list} ListEmptyComponent={!busy ? <Text style={styles.muted}>{error || t('noPaymentBody')}</Text> : null} renderItem={({ item }) => <View style={styles.row}><Text style={styles.cell}>{displayValue(item.reason, i18n.language)}</Text><Text style={styles.cell}>{t(entityLabels[item.entity] ?? 'entity')}</Text><Text style={styles.cell}>{entityDetail(item, i18n.language)}</Text></View>}/>
   </SafeAreaView>;
 }
 const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, header: { padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, title: { color: colors.text, fontSize: 21, fontWeight: '900' }, list: { paddingHorizontal: 12, paddingBottom: 35 }, columnHead: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.panelLight }, column: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 12 }, row: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderColor: colors.border }, cell: { flex: 1, color: colors.text, fontSize: 12 }, muted: { color: colors.muted, padding: 20 } });

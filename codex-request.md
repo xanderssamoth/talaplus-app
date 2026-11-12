@@ -30,7 +30,7 @@ En cliquant sur le bouton "Sélectionner" sur un plan premium. API Endpoint pour
     -> "phone" [Tu mettras le libellé "N° de téléphone"]. Ce champs disparait quand l'utilisateur choisit "Carte bancaire" (qui enverra "type = 2" sur le serveur) et réapparait quand l'utilisateur choisit "Mobile money" (qui enverra "type = 1" sur le serveur).
 
 En envoyant les données sur le serveur, pour type :
-- Si l'utilisateur choisit "Mobile money" (valeur "1" envoyée pour "type"), tu le rédirige vers une fenêtre contenant du contenu (centré au tout milieu) suivant :
+- Si l'utilisateur choisit "Mobile money" (valeur "1" envoyée pour "type"), tu le rédiriges vers une fenêtre contenant du contenu (centré au tout milieu) suivant :
     -> L'image "assets/payment/validate-payment.png" ;
     -> Un texte d'information "Validez le paiement sur votre téléphone et cliquez sur le bouton « OK » ci-dessous" (ne pas oublier que les textes sont en 3 languess ici et partout) ;
     -> Le fameux bouton « OK » sur lequel l'utilisateur clique après avoir validé le paiement "Mobile money" sur son téléphone.
@@ -124,10 +124,35 @@ Dans les cas, que l'utilisateur clique sur « OK » pour "Mobile money", ou sur 
         ->> En tenant compte de la colonne "date" de la branche JSON "days" qui est incluse dans la branche JSON "weeks" de la branche "referral", tu peux calculer le pourcentage de fréquence pour remplacer "+16%" par une valeur numérique dynamique ;
     -> Le graphique "Évolution des revenus" : Ce graphique s'affiche selon l'API Endpoint "GET : https://admin.talaplus.tv/api/v1/user/{userId}/earning-stats" ("userId" sur l'URL est l'ID de l'utilisateur en cours. Et il faut récupérer la branche JSON "days" sous branche de "weeks ["end_date" doit être la plus récente]" qui est sous branche de "referral"). Et cette branche JSON "days" contient les jours qui serviront pour le graphique.
 
+
 ============
-Toujours pour l'utilisateur (onglet "Profil") :
+Toujours pour l'utilisateur en cours (onglet "Profil") :
 ============
 
-Juste après le lien "Parrainage", mets le lien "Porte-monnaie" qui affichera :
-- une fenêtre contenant le montant (monnaie virtuel) de l'utilisateur en cours
+Juste après le lien "Parrainage", mets le lien "Porte-monnaie" qui affiche une fenêtre contenant :
+- le montant (monnaie virtuel) de l'utilisateur en cours. API Endpoint "GET : https://admin.talaplus.tv/api/v1/wallet/me" (ne pas oublier "Bearer [TOKEN]" pour identifier l'utilisateur en cours via son token) ;
+- un bouton "Acheter des coins" qui ouvre une fenêtre avec la liste des packs (API Endpoint "GET : https://admin.talaplus.tv/api/v1/pricing/reason/coin_price"), à acheter pour recharger des coins ;
 
+Sur la liste de chaque pack, il y a un bouton pour choisir le pack ; et, en cliquant sur ce bouton, il y a une fenêtre pour envoyer des données de paiement (API Endpoint "POST : https://admin.talaplus.tv/api/v1/wallet/coins/purchase") suivant :
+- "pricing_id" : [L'ID du pack caché dans le bouton sur lequel l'utilisateur en cours clique pour choisir le pack]. Quand il clique un pop-up avec les libellés "Mode de paiement" et "Canal"
+-> "type" : [Tu mettras le libellé "Mode de paiement" pour choisir :
+    ->> entre "Mobile money" (tu envoies la valeur "1")
+    ->> et "Carte bancaire" (tu envoies la valeur "2")]. Les images sont dans le dossiers "assets/payment" (Le nom des fichiers est "payment-[TYPE]" pour que tu associes le numéro du type au nom du mode de paiement) ;
+    -> "channel" [Tu mettras le libellé "Canal" (corrige ce libellé aussi pour premium) pour choisir un canal]. Les canaux sont les suivants (Les images sont dans le dossier "assets/payment", et le nom des fichiers est "operator-[NOM DU CANAL]" pour que tu récupères le nom du canal pour mieux placer le nom et l'image) :
+        ->> Afrimoney ;
+        ->> Airtel money ;
+        ->> M-Pesa ;
+        ->> Orange money ;
+        ->> Visa/Mastercard.
+    -> "phone" [Tu mettras le libellé "N° de téléphone"]. Ce champs disparait quand l'utilisateur choisit "Carte bancaire" (qui enverra "type = 2" sur le serveur) et réapparait quand l'utilisateur choisit "Mobile money" (qui enverra "type = 1" sur le serveur).
+
+En envoyant les données sur le serveur, pour type :
+- Si l'utilisateur choisit "Mobile money" (valeur "1" envoyée pour "type"), tu le rédiriges vers une fenêtre contenant du contenu (centré au tout milieu) suivant :
+    -> L'image "assets/payment/validate-payment.png" ;
+    -> Un texte d'information "Validez le paiement sur votre téléphone et cliquez sur le bouton « OK » ci-dessous" (ne pas oublier que les textes sont en 3 languess ici et partout) ;
+    -> Le fameux bouton « OK » sur lequel l'utilisateur clique après avoir validé le paiement "Mobile money" sur son téléphone.
+- Si l'utilisateur choisit "Carte bancaire" (valeur "2" envoyée pour "type"), l'API doit retourner (s'il n'y a pas d'erreur) une réponse JSON contenant la branche "url" qui te servira pour rédiriger l'utilisateur vers une fenêtre contenant :
+    -> Une flèche pour retourner à la fenêtre de "Porte-monnaie" qui contiendra maintenant une info (multilingue) "Dès que votre paiement est validé, le nombre de vos coins sera augmenté." ;
+    -> Un webview (en dessous de la flèche retour) affichant le contenu venant de l'URL de cette branche JSON "url".
+
+Dans les cas, que l'utilisateur clique sur « OK » pour "Mobile money", ou sur flèche pour retourner pour "Carte bancaire", il retourne toujours sur la fenêtre "Porte-monnaie".

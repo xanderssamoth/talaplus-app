@@ -360,6 +360,7 @@ const ln = {
   verified: 'Endimami', verificationPending: 'Ezali kozela', verifyAccount: 'Tala compte na ngai', memberSinceDynamic: 'Membre banda {{date}}',
   unsubscribe: 'Longwa na abonnement', paymentPhone: 'Nimero ya telefone', phoneRequired: 'Tyá nimero ya telefone mpo na Mobile money.',
   followerOne: 'Follower', followerMany: 'Ba followers', noUserPosts: 'Moto oyo abimisi naino post te.',
+  wallet: 'Porte-monnaie', coinBalance: 'Motango ya ba coins', coins: 'ba coins', buyCoins: 'Somba ba coins', noCoinPacks: 'Pack ya ba coins ezali naino te.', walletPaymentPending: 'Soki kofuta na yo endimami, motango ya ba coins na yo ekobakisama.',
   mediaViewedOne: 'Media etalami', mediaViewedMany: 'Ba media etalami', mediaPlayedOne: 'Media etangami', mediaPlayedMany: 'Ba media etangami', subscriptionOne: 'Abonnement', subscriptionMany: 'Ba abonnements',
   productsServices: 'Biloko/Misala', videosAudios: 'Ba video/Ba audio', cart: 'Panier', retry: 'Meka lisusu',
   idCardRequired: 'Pona carte ya identité na yo.', invalidPlanDuration: 'Ntango ya plan ezali malamu te.', paymentUrlMissing: 'Lien ya kofuta ezwami te.',

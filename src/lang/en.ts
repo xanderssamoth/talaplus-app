@@ -360,6 +360,7 @@ const en = {
   verified: 'Verified', verificationPending: 'Pending', verifyAccount: 'Verify my account', memberSinceDynamic: 'Member since {{date}}',
   unsubscribe: 'Unsubscribe', paymentPhone: 'Phone number', phoneRequired: 'Enter a phone number for Mobile money.',
   followerOne: 'Follower', followerMany: 'Followers', noUserPosts: 'This user has not published any posts yet.',
+  wallet: 'Wallet', coinBalance: 'Coin balance', coins: 'coins', buyCoins: 'Buy coins', noCoinPacks: 'No coin packs are available right now.', walletPaymentPending: 'Your coin balance will increase as soon as your payment is confirmed.',
   mediaViewedOne: 'Media viewed', mediaViewedMany: 'Media viewed', mediaPlayedOne: 'Media played', mediaPlayedMany: 'Media played', subscriptionOne: 'Subscription', subscriptionMany: 'Subscriptions',
   productsServices: 'Products/Services', videosAudios: 'Videos/Audio', cart: 'Cart', retry: 'Retry',
   idCardRequired: 'Please select your ID card.', invalidPlanDuration: 'Invalid plan duration.', paymentUrlMissing: 'Payment link unavailable.',

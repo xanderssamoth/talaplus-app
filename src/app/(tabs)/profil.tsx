@@ -47,6 +47,7 @@ export default function ProfileScreen() {
     ['users', 'subscriptions', '/profile/subscriptions'],
     ['credit-card', 'payments', '/payments'],
     ['share-2', 'referral', '/profile/referral'],
+    ['credit-card', 'wallet', '/profile/wallet'],
     ['settings', 'settings', '/profile/settings'],
   ];
 

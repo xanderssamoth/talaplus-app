@@ -360,6 +360,7 @@ const fr = {
   verified: 'Vérifié', verificationPending: 'En cours', verifyAccount: 'Vérifier mon compte', memberSinceDynamic: 'Membre depuis {{date}}',
   unsubscribe: 'Se désabonner', paymentPhone: 'N° de téléphone', phoneRequired: 'Saisissez le numéro de téléphone pour Mobile money.',
   followerOne: 'Follower', followerMany: 'Followers', noUserPosts: "Cet utilisateur n'a pas encore publié de posts.",
+  wallet: 'Porte-monnaie', coinBalance: 'Solde de coins', coins: 'coins', buyCoins: 'Acheter des coins', noCoinPacks: 'Aucun pack de coins disponible pour le moment.', walletPaymentPending: 'Dès que votre paiement est validé, le nombre de vos coins sera augmenté.',
   mediaViewedOne: 'Média consulté', mediaViewedMany: 'Médias consultés', mediaPlayedOne: 'Média lu', mediaPlayedMany: 'Médias lus', subscriptionOne: 'Abonnement', subscriptionMany: 'Abonnements',
   productsServices: 'Produits/Services', videosAudios: 'Vidéos/Audios', cart: 'Panier', retry: 'Réessayer',
   idCardRequired: "Veuillez sélectionner votre carte d'identité.", invalidPlanDuration: 'Durée de plan invalide.', paymentUrlMissing: 'Le lien de paiement est indisponible.',
