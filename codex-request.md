@@ -156,3 +156,23 @@ En envoyant les données sur le serveur, pour type :
     -> Un webview (en dessous de la flèche retour) affichant le contenu venant de l'URL de cette branche JSON "url".
 
 Dans les cas, que l'utilisateur clique sur « OK » pour "Mobile money", ou sur flèche pour retourner pour "Carte bancaire", il retourne toujours sur la fenêtre "Porte-monnaie".
+
+============
+Avant tout :
+============
+Pour ne pas tomber sur les erreurs JSON du genre "{en, fr, ln}", j'ai mis le fichier "assets/talaplus.sql" qui contient le schéma des données "talaplus" ; comme ça :
+-> Dès que tu constates qu'une colonne d'une table est de type JSON, alors son résultat API aura la forme "{en, fr, ln}" ;
+-> Tu peux renommer les valeurs des colonnes de type ENUM sur l'application (multilingue toujours) pour qu'elles s'affichent de manière lisible. Par exemple, pour le français, quand pour la colonne payments.reason  tu as :
+    ->> "media_create" : Tu mets "Création vidéo/audio" ;
+    ->> "media_boost" : Tu mets "Boost vidéo/audio" ;
+    ->> "gift" : Tu mets "Cadeau" ;
+    ->> "product_sale" : Tu mets "Vente produit/service" ;
+    ->> etc.
+
+============
+On peut donc continuer :
+============
+
+1️⃣ Sur le profil de l'utilisateur en cours, au lien "Paiement" :
+- pour la colonne "motif" du tableau sur la page, tu peux mettre des mots compréhensible pour l'utilisateur ("coin_price" peut devenir "Prix de coins". N'oublie pas le multilingue) ;
+- ajoute la colonne "Etat" pour definir l'état du paiement : (0) Ré
