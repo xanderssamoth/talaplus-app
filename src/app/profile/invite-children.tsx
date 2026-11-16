@@ -39,7 +39,22 @@ export default function InviteChildrenScreen() {
   };
   return <SafeAreaView style={styles.container}>
     <View style={styles.header}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text}/></Pressable><Text style={styles.title}>{t('inviteChildren')}</Text><View style={{ width: 23 }}/></View>
-    <View style={styles.searchWrap}><Feather name="search" size={19} color={colors.muted}/><TextInput value={word} onChangeText={setWord} autoFocus placeholder={t('searchChildren')} placeholderTextColor={colors.muted} style={styles.search}/>{!!word && <Pressable onPress={() => setWord('')}><Feather name="x" size={19} color={colors.muted}/></Pressable>}</View>
+    <View style={styles.searchWrap}>
+      <Feather name="search" size={19} color={colors.muted}/>
+      <TextInput
+        value={word}
+        onChangeText={setWord}
+        autoFocus
+        placeholder={t('searchChildren')}
+        placeholderTextColor={colors.muted}
+        style={styles.search}
+      />
+      {word.length > 0 ? (
+        <Pressable onPress={() => setWord('')} accessibilityLabel={t('clearSearch')}>
+          <Feather name="x" size={19} color={colors.muted}/>
+        </Pressable>
+      ) : null}
+    </View>
     <View style={styles.list}>{searching && <ActivityIndicator color={colors.primary}/>} {!!error && <Text style={styles.error}>{error}</Text>}{!searching && word.trim().length >= 2 && !error && !results.length && <Text style={styles.empty}>{t('noUserTitle')}</Text>}{results.map(user => <Pressable key={user.id} style={[styles.row, selectedIds.includes(user.id) && styles.rowSelected]} onPress={() => toggle(user.id)}>{user.avatarUrl ? <Image source={{ uri: user.avatarUrl }} style={styles.avatar}/> : <View style={styles.avatar}><Text style={styles.initial}>{user.name[0] || 'T'}</Text></View>}<View style={styles.flex}><Text style={styles.name}>{user.name || user.username}</Text><Text style={styles.username}>@{user.username}</Text></View><Feather name={selectedIds.includes(user.id) ? 'check-circle' : 'circle'} size={22} color={selectedIds.includes(user.id) ? colors.primary : colors.muted}/></Pressable>)}</View>
     {!!selectedIds.length && <View style={styles.footer}><Pressable style={styles.invite} disabled={inviting} onPress={invite}>{inviting ? <ActivityIndicator color={colors.text}/> : <Text style={styles.inviteText}>{t('inviteSelected', { count: selectedIds.length })}</Text>}</Pressable></View>}
   </SafeAreaView>;

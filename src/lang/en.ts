@@ -64,6 +64,7 @@ const en = {
   noMediaTitle: 'No media',
   noMediaBody: 'Content will appear here.',
   noUserTitle: 'No user',
+  clearSearch: 'Clear search',
   noUserBody: 'Your connections will appear here.',
   noPaymentTitle: 'No payment',
   noPaymentBody: 'Your payments will appear here.',
@@ -369,7 +370,7 @@ const en = {
   firstnameField: 'First name', lastnameField: 'Last name', surnameField: 'Middle name', aboutMeField: 'About me', genderField: 'Gender', birthdateField: 'Date of birth (YYYY-MM-DD)', countryField: 'Country', cityField: 'City', address1Field: 'Primary address', address2Field: 'Additional address', poBoxField: 'PO box', currencyField: 'Currency (USD/CDF)', emailField: 'Email address', phoneField: 'Phone number', usernameField: 'Username',
   becomePartner: 'Become a partner', noReferrees: 'No referrals yet.', partnerReady: 'Your partner space is ready.', reason: 'Reason', entity: 'Entity', entityData: 'Details', mediaEntity: 'Video/Audio', cartEntity: 'Cart', userEntity: 'User', pricingEntity: 'Pricing',
   paymentStatus: 'Status', paymentSuccessful: 'Successful', paymentPending: 'Pending', paymentFailed: 'Failed', paymentReasonMediaCreate: 'Media publishing', paymentReasonMediaBoost: 'Media promotion', paymentReasonGift: 'Gift', paymentReasonProductSale: 'Product sale', paymentReasonCertification: 'Account verification', paymentReasonAd: 'Advertising', paymentReasonCoins: 'Coin price', paymentReasonEarnings: 'Earnings transfer',
-  parentalControl: 'Parental control', parentInvitations: 'Parent invitations', noParentInvitation: 'No parent invitations', accept: 'Accept', accepted: 'Accepted', inviteChildren: 'Invite children', inviteChildrenHint: 'Search and invite one or more members.', searchChildren: 'Search for a member', inviteSelected: 'Invite ({{count}})', invitationSentTitle: 'Invitations sent', invitationSentBody: 'The selected members will receive an invitation.', childSecurity: 'Child safety', childSecurityEnabled: 'Enabled: children-only content', childSecurityDisabled: 'Disabled',
+  parentalControl: 'Parental control', parentInvitations: 'Parent invitations', noParentInvitation: 'No parent invitations', accept: 'Accept', accepted: 'Accepted', inviteChildren: 'Invite children', inviteChildrenHint: 'Search and invite one or more members.', searchChildren: 'Search for a member', inviteSelected: 'Invite ({{count}})', invitationSentTitle: 'Invitations sent', invitationSentBody: 'The selected members will receive an invitation.', childSecurity: 'Child safety', childSecurityEnabled: 'Enabled: children-only content', childSecurityDisabled: 'Disabled', activateChildSecurity: 'Enable child safety', deactivateChildSecurity: 'Disable child safety',
 };
 
 export default en;

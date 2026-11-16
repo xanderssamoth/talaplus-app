@@ -64,6 +64,7 @@ const ln = {
   noMediaTitle: 'Média ezali te',
   noMediaBody: 'Ba contenu ekomonana awa.',
   noUserTitle: 'Utilisateur azali te',
+  clearSearch: 'Longola boluki',
   noUserBody: 'Ba connexion na yo ekomonana awa.',
   noPaymentTitle: 'Bofuti ezali te',
   noPaymentBody: 'Ba paiements na yo ekomonana awa.',
@@ -369,7 +370,7 @@ const ln = {
   firstnameField: 'Nkombo ya liboso', lastnameField: 'Nkombo', surnameField: 'Postnom', aboutMeField: 'Na ntina na ngai', genderField: 'Mobali to mwasi', birthdateField: 'Mokolo ya kobotama (AAAA-MM-JJ)', countryField: 'Mboka', cityField: 'Engumba', address1Field: 'Adrɛsi ya liboso', address2Field: 'Adrɛsi mosusu', poBoxField: 'Boîte postale', currencyField: 'Mbongo (USD/CDF)', emailField: 'Adrɛsi e-mail', phoneField: 'Nimero ya telefone', usernameField: 'Nkombo ya compte',
   becomePartner: 'Koma partenaire', noReferrees: 'Filleul azali naino te.', partnerReady: 'Esika ya partenaire ebongami.', reason: 'Ntina', entity: 'Lolenge', entityData: 'Makambo', mediaEntity: 'Video/Audio', cartEntity: 'Panier', userEntity: 'Moto', pricingEntity: 'Motuya',
   paymentStatus: 'Ezali ndenge nini', paymentSuccessful: 'Elongi', paymentPending: 'Ezali kozela', paymentFailed: 'Ekokaki te', paymentReasonMediaCreate: 'Kobimisa media', paymentReasonMediaBoost: 'Kotombola media', paymentReasonGift: 'Kado', paymentReasonProductSale: 'Koteka produit', paymentReasonCertification: 'Kondimisa compte', paymentReasonAd: 'Publicité', paymentReasonCoins: 'Motuya ya ba coins', paymentReasonEarnings: 'Kotinda revenus',
-  parentalControl: 'Contrôle parental', parentInvitations: 'Ba invitations ya moboti', noParentInvitation: 'Invitation ya moboti ezali te', accept: 'Ndima', accepted: 'Endimami', inviteChildren: 'Bengisa bana', inviteChildrenHint: 'Luka mpe bingisa membre moko to mingi.', searchChildren: 'Luka membre', inviteSelected: 'Bengisa ({{count}})', invitationSentTitle: 'Ba invitations etindami', invitationSentBody: 'Ba membre oponi bakozwa invitation.', childSecurity: 'Bobateli ya mwana', childSecurityEnabled: 'Etamboli: makambo ya bana kaka', childSecurityDisabled: 'Etamboli te',
+  parentalControl: 'Contrôle parental', parentInvitations: 'Ba invitations ya moboti', noParentInvitation: 'Invitation ya moboti ezali te', accept: 'Ndima', accepted: 'Endimami', inviteChildren: 'Bengisa bana', inviteChildrenHint: 'Luka mpe bingisa membre moko to mingi.', searchChildren: 'Luka membre', inviteSelected: 'Bengisa ({{count}})', invitationSentTitle: 'Ba invitations etindami', invitationSentBody: 'Ba membre oponi bakozwa invitation.', childSecurity: 'Bobateli ya mwana', childSecurityEnabled: 'Etamboli: makambo ya bana kaka', childSecurityDisabled: 'Etamboli te', activateChildSecurity: 'Pelisá bobateli ya mwana', deactivateChildSecurity: 'Zimisa bobateli ya mwana',
 };
 
 export default ln;
