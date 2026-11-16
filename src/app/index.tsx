@@ -46,7 +46,7 @@ export default function WelcomeScreen() {
         pointerEvents="none"
         source={require('@assets/home-screen.png')}
         style={styles.backgroundImage}
-        resizeMode="contain"
+        resizeMode="none"
       />
       <SafeAreaView style={styles.overlay}>
         <Animated.View
