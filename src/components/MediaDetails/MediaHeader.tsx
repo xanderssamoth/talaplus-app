@@ -1,5 +1,5 @@
 import { VideoPlayer, VideoView } from "expo-video";
-import { ImageBackground, Text, View, StyleSheet, ActivityIndicator } from "react-native";
+import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
 import { useState } from "react";
 import MediaCover from '@/components/MediaCover';
 

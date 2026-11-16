@@ -47,7 +47,7 @@ export default function HashtagsScreen() {
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
         ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noHashtagTitle')} body={t('noHashtagBody')} />}
-        ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
+        ListFooterComponent={loading && items.length ? <LoadingState compact /> : undefined}
         renderItem={({ item }) => (
           <Pressable style={styles.badge} onPress={() => router.push(`/hashtag/${encodeURIComponent(item.name)}`)}>
             <Text style={styles.badgeText}>#{item.name}</Text>

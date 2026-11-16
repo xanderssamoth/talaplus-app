@@ -31,35 +31,35 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: t('home'),
-            tabBarIcon: ({ color }) => <Foundation name="home" size={24} color={color} />,
+            tabBarIcon: ({ color }) => <Foundation name="home" size={24} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="chaines"
           options={{
             title: t('channels'),
-            tabBarIcon: ({ color }) => <MaterialCommunityIcons name="television-play" size={22} color={color} />,
+            tabBarIcon: ({ color }) => <MaterialCommunityIcons name="television-play" size={22} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="explorer"
           options={{
             title: t('explore'),
-            tabBarIcon: ({ color }) => <FontAwesome6 name="briefcase" size={21} color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome6 name="briefcase" size={21} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="communaute"
           options={{
             title: t('community'),
-            tabBarIcon: ({ color }) => <Feather name="users" size={22} color={color} />,
+            tabBarIcon: ({ color }) => <Feather name="users" size={22} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="profil"
           options={{
             title: t('profile'),
-            tabBarIcon: ({ color }) => <FontAwesome5 name="user-circle" size={21} color={color} />,
+            tabBarIcon: ({ color }) => <FontAwesome5 name="user-circle" size={21} color={color as string} />,
           }}
         />
         <Tabs.Screen name="chat" options={{ href: null }} />

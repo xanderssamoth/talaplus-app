@@ -173,6 +173,20 @@ Pour ne pas tomber sur les erreurs JSON du genre "{en, fr, ln}", j'ai mis le fic
 On peut donc continuer :
 ============
 
-1️⃣ Sur le profil de l'utilisateur en cours, au lien "Paiement" :
-- pour la colonne "motif" du tableau sur la page, tu peux mettre des mots compréhensible pour l'utilisateur ("coin_price" peut devenir "Prix de coins". N'oublie pas le multilingue) ;
-- ajoute la colonne "Etat" pour definir l'état du paiement : (0) Ré
+Sur le profil de l'utilisateur en cours :
+-> Au lien "Paiement" :
+    ->> pour la colonne "motif" du tableau sur la page, tu peux mettre des mots compréhensible pour l'utilisateur ("coin_price" peut devenir "Prix de coins". N'oublie pas le multilingue) ;
+    ->> ajoute la colonne "Etat" pour definir l'état du paiement (la valeur est numérique) :
+        ->>> (0) Badge vert avec le mot "Réussi" ;
+        ->>> (2) Badge blanc avec le mot "En attente" ;
+        ->>> (1) Badge rouge avec le mot "Échoué".
+
+    Tu peux ajouter de l'espace pour le contenu du tableau des paiements ; et mettre un scrolling horizontal, vu que le tableau va forcément débordé sur les petits écrans.
+
+-> Ajoute, avant "Paramètre", le lien "Contrôle parental" qui conduit à une fenêtre contenant :
+    ->> Un bouton pour afficher les invitations à l'utilisateur en cours (userId) à devenir enfant (API Endpoint "GET : https://admin.talaplus.tv/api/v1/user/{userId}/children/invitations". Quand la valeur de la branche "has_pending_invitations" est false, Il y a un message multilingue "Aucune invitation de parent" ; sinon la liste apparait). Tu as le fichier "assets/talaplus.sql" pour voir les colonnes de la table "child_invitations" ; et il y a une colonne "parent_user" qui contient les données (id, firstname, lastname, surname, partner_name, username, avatar_url et cover_url) qui appartiennent à la colonne `child_invitations`.`parent_user_id` pour te faciliter l'afficher le contenu des parents sur la liste. A côté de chaque parent qui a invité, il y a un bouton "Accepter" (API Endpoint "POST : https://admin.talaplus.tv/api/v1/user/children/invitations/{invitation}/accept"). Quand il clique dessus, le bouton disparait (on ne peut plus annuler l'invitation) et les autres invitations disparaissent. En fait, pour chaque utilisateur connecté (en cours) lorsqu'il y a une invitation dont la colonne `child_invitations`.`status` à la valeur "accepted", on n'affiche que celle-là sans bouton, et les autres invitations disparaissent.
+    ->> Un bouton pour inviter des enfants. Ce bouton ouvre une autre fenêtre avec la barre de recherche pour trouver des utilisateurs (API Endpoint "GET : https://admin.talaplus.tv/api/v1/user/search/by-word?user_id={user_id}&word={word}". Sachant que "user_id" est l'ID de l'utilisateur en cours et "word" est le mot clé à rechercher). Et dès que les utilisateurs sont affichés sur le résultat de recherche, à côté de chaque utilisateur, il y a un bouton pour l'inviter à devenir enfant de l'utilisateur en cours. L'API Endpoint "POST : https://admin.talaplus.tv/api/v1/user/children/invitations" envoie la donnée "child_ids" qui est un tableau d'IDs (un ou plusieurs) des utilisateurs qu'on veut inviter (donc tu peux faire en sorte que l'utilisateur sélection 2 ou plusieurs membres et un seul bouton "Inviter" reste pour les inviter tous à la fois ; sinon, il clique à chaque bouton de chaque membre).
+    ->> Un bouton "Sécurité enfant" pour forcer tous les enfants mineurs de l'utilisateur en cours à ne voir que les contenus pour enfants. API Endpoint "PATCH https://admin.talaplus.tv/api/v1/user/{id}/child-lock-code". Quand la colonne `users`.`child_lock_code` est vide de l'utilisateur en cours (id), ce bouton est vert avec l'icône "check" ✅ ; sinon le bouton sera rouge avec l'icône "times" ❌
+
+
+

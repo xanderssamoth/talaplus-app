@@ -52,7 +52,7 @@ export default function ShareConnectionsScreen() {
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
         ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noUserTitle')} body={t('noUserBody')} />}
-        ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
+        ListFooterComponent={loading && items.length ? <LoadingState compact /> : undefined}
         renderItem={({ item }) => <ConnectionRow user={item} />}
       />
     </SafeAreaView>

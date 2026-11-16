@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Image, ImageBackground, Pressable, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome } from '@expo/vector-icons';
@@ -50,7 +51,7 @@ export default function HomeScreen() {
 
   return (
     <>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <StatusBar style="light" />
       <SafeAreaView style={styles.container}>
         <AppHeader showLogo showAvatar />
 

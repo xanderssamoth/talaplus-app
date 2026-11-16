@@ -106,7 +106,7 @@ export default function BusinessPlusScreen() {
         )}
         renderItem={({ item }) => <EntrepreneurCard entrepreneur={item} />}
         ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noUserTitle')} body={t('noUserBody')} />}
-        ListFooterComponent={loading && visibleEntrepreneurs.length ? <LoadingState compact /> : null}
+        ListFooterComponent={loading && visibleEntrepreneurs.length ? <LoadingState compact /> : undefined}
         onEndReached={() => loadEntrepreneurs(page + 1)}
         onEndReachedThreshold={0.4}
       />

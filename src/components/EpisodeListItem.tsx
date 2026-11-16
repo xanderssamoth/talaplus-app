@@ -1,5 +1,5 @@
 import { Episode } from "@/types/types";
-import { ImageBackground, View, StyleSheet, Text, Pressable, ActivityIndicator } from "react-native";
+import { Image, View, StyleSheet, Text, Pressable, ActivityIndicator } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 
 type EpisodeListItemProps = {
@@ -13,13 +13,14 @@ export default function EpisodeListItem({ episode, onPlayMediaPressed, isEpisode
   return (
     <Pressable style={styles.container} onPress={() => onPlayMediaPressed(videoUrl, id)}>
       <View style={styles.episodeContainer}>
-        <ImageBackground source={{ uri: episodeThumbnail }} style={styles.imageBackground}>
+        <View style={styles.imageBackground}>
+          <Image source={{ uri: episodeThumbnail }} style={styles.thumbnail} />
           {isEpisodeLoading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
             <FontAwesome name="play" size={12} color="white" style={{ marginLeft: 2 }} />
           )}
-        </ImageBackground>
+        </View>
         <View style={{ gap: 2 }}>
           <View style={{ flexDirection: 'row' }}>
             <Text style={styles.episodeText}>{episodeNumber}. </Text>
@@ -44,7 +45,17 @@ const styles = StyleSheet.create({
     width: 100,
     aspectRatio: 3 / 2,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderRadius: 6,
+  },
+  thumbnail: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    resizeMode: 'cover',
   },
   episodeContainer: {
     flexDirection: 'row',

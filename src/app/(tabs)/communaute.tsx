@@ -90,7 +90,7 @@ export default function CommunityScreen() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <PostCard post={item} />}
           ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noContentTitle')} body={t('noPosts')} />}
-          ListFooterComponent={loading && posts.length ? <LoadingState compact /> : null}
+          ListFooterComponent={loading && posts.length ? <LoadingState compact /> : undefined}
           onEndReached={() => loadPosts(postPage + 1)}
           onEndReachedThreshold={0.4}
         />
@@ -101,7 +101,7 @@ export default function CommunityScreen() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <ConversationRow conversation={item} onPress={() => setActiveConversation(item)} />}
           ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('messages')} body={t('noMessagesBody')} />}
-          ListFooterComponent={loading && visibleConversations.length ? <LoadingState compact /> : null}
+          ListFooterComponent={loading && visibleConversations.length ? <LoadingState compact /> : undefined}
           onEndReached={() => loadConversations(conversationPage + 1)}
           onEndReachedThreshold={0.4}
         />

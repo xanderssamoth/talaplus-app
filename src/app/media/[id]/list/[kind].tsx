@@ -71,7 +71,7 @@ export default function MediaMoreListScreen() {
           onEndReached={() => load(page + 1)}
           onEndReachedThreshold={0.4}
           ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noCommentTitle')} body={t('noCommentsBody')} />}
-          ListFooterComponent={loading && comments.length ? <LoadingState compact /> : null}
+          ListFooterComponent={loading && comments.length ? <LoadingState compact /> : undefined}
           renderItem={({ item }) => <CommentRow comment={item} />}
         />
       ) : (
@@ -83,7 +83,7 @@ export default function MediaMoreListScreen() {
           onEndReached={() => load(page + 1)}
           onEndReachedThreshold={0.4}
           ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noMediaTitle')} body={t('noMediaBody')} />}
-          ListFooterComponent={loading && mediaItems.length ? <LoadingState compact /> : null}
+          ListFooterComponent={loading && mediaItems.length ? <LoadingState compact /> : undefined}
           renderItem={({ item }) => <MediaRow media={item} />}
         />
       )}

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { apiRequest, getCurrentUser } from '@/lib/session';
 
 type Payment = Record<string, any>;
 const entityLabels: Record<string, string> = { media: 'mediaEntity', cart: 'cartEntity', user: 'userEntity', pricing: 'pricingEntity' };
+const reasonLabels: Record<string, string> = { media_create: 'paymentReasonMediaCreate', media_boost: 'paymentReasonMediaBoost', gift: 'paymentReasonGift', product_sale: 'paymentReasonProductSale', user_certfied: 'paymentReasonCertification', user_certified: 'paymentReasonCertification', ad: 'paymentReasonAd', coin_price: 'paymentReasonCoins', earnings_send: 'paymentReasonEarnings' };
 function displayValue(value: unknown, language: string): string {
   if (value == null) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
@@ -30,21 +31,25 @@ function entityDetail(payment: Payment, language: string) {
 }
 async function completePayment(payment: Payment): Promise<Payment> {
   if (entityDetail(payment, 'fr') || !payment.entity_id || !['media', 'cart', 'user', 'pricing'].includes(payment.entity)) return payment;
-  try {
-    const response = await apiRequest<unknown>(`/v1/${payment.entity}/${encodeURIComponent(String(payment.entity_id))}`);
-    return { ...payment, entity_data: Array.isArray(response.data) ? response.data[0] : response.data };
-  } catch { return payment; }
+  try { const response = await apiRequest<unknown>(`/v1/${payment.entity}/${encodeURIComponent(String(payment.entity_id))}`); return { ...payment, entity_data: Array.isArray(response.data) ? response.data[0] : response.data }; } catch { return payment; }
+}
+function PaymentStatus({ value }: { value: unknown }) {
+  const { t } = useTranslation();
+  const status = Number(value);
+  const pending = status === 2;
+  const succeeded = status === 0;
+  return <View style={[styles.status, succeeded ? styles.success : pending ? styles.pending : styles.failed]}><Text style={[styles.statusText, pending && styles.pendingText]}>{t(succeeded ? 'paymentSuccessful' : pending ? 'paymentPending' : 'paymentFailed')}</Text></View>;
 }
 export default function PaymentsScreen() {
   const { t, i18n } = useTranslation();
   const [items, setItems] = useState<Payment[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
-  const load = useCallback(() => { setBusy(true); fetchPayments(getCurrentUser().id).then(async r => { setItems(await Promise.all(r.items.map(completePayment))); setError(''); }).catch(e => setError(e instanceof Error ? e.message : t('requestFailed'))).finally(() => setBusy(false)); }, [t]);
+  const load = useCallback(() => { setBusy(true); fetchPayments(getCurrentUser().id).then(async result => { setItems(await Promise.all(result.items.map(completePayment))); setError(''); }).catch(e => setError(e instanceof Error ? e.message : t('requestFailed'))).finally(() => setBusy(false)); }, [t]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
-  return <SafeAreaView style={styles.container}><View style={styles.header}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text}/></Pressable><Text style={styles.title}>{t('payments')}</Text><View style={{ width: 23 }}/></View>
-    <View style={styles.columnHead}><Text style={styles.column}>{t('reason')}</Text><Text style={styles.column}>{t('entity')}</Text><Text style={styles.column}>{t('entityData')}</Text></View>
-    <FlatList data={items} keyExtractor={(item, index) => String(item.id ?? index)} refreshing={busy} onRefresh={load} contentContainerStyle={styles.list} ListEmptyComponent={!busy ? <Text style={styles.muted}>{error || t('noPaymentBody')}</Text> : null} renderItem={({ item }) => <View style={styles.row}><Text style={styles.cell}>{displayValue(item.reason, i18n.language)}</Text><Text style={styles.cell}>{t(entityLabels[item.entity] ?? 'entity')}</Text><Text style={styles.cell}>{entityDetail(item, i18n.language)}</Text></View>}/>
+  const tableHeader = <View style={styles.headerRow}><Text style={[styles.headCell, styles.reasonCell]}>{t('reason')}</Text><Text style={[styles.headCell, styles.entityCell]}>{t('entity')}</Text><Text style={[styles.headCell, styles.detailCell]}>{t('entityData')}</Text><Text style={[styles.headCell, styles.statusCell]}>{t('paymentStatus')}</Text></View>;
+  return <SafeAreaView style={styles.container}><View style={styles.top}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={23} color={colors.text}/></Pressable><Text style={styles.title}>{t('payments')}</Text><View style={{ width: 23 }}/></View>
+    <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={styles.horizontal}><FlatList style={styles.table} data={items} keyExtractor={(item, index) => String(item.id ?? index)} refreshing={busy} onRefresh={load} ListHeaderComponent={tableHeader} contentContainerStyle={styles.list} ListEmptyComponent={!busy ? <Text style={styles.muted}>{error || t('noPaymentBody')}</Text> : undefined} renderItem={({ item }) => <View style={styles.row}><Text style={[styles.cell, styles.reasonCell]}>{reasonLabels[String(item.reason)] ? t(reasonLabels[String(item.reason)]) : displayValue(item.reason, i18n.language)}</Text><Text style={[styles.cell, styles.entityCell]}>{t(entityLabels[item.entity] ?? 'entity')}</Text><Text style={[styles.cell, styles.detailCell]}>{entityDetail(item, i18n.language)}</Text><View style={styles.statusCell}><PaymentStatus value={item.status}/></View></View>}/></ScrollView>
   </SafeAreaView>;
 }
-const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, header: { padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, title: { color: colors.text, fontSize: 21, fontWeight: '900' }, list: { paddingHorizontal: 12, paddingBottom: 35 }, columnHead: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.panelLight }, column: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 12 }, row: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderColor: colors.border }, cell: { flex: 1, color: colors.text, fontSize: 12 }, muted: { color: colors.muted, padding: 20 } });
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: colors.background }, top: { padding: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, title: { color: colors.text, fontSize: 21, fontWeight: '900' }, horizontal: { flexGrow: 1 }, table: { minWidth: 700, flex: 1 }, list: { padding: 16, paddingTop: 0, paddingBottom: 35 }, headerRow: { flexDirection: 'row', paddingVertical: 13, paddingHorizontal: 12, backgroundColor: colors.panelLight, borderTopLeftRadius: 10, borderTopRightRadius: 10 }, headCell: { color: colors.text, fontWeight: '900', fontSize: 12 }, row: { minHeight: 64, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.panel, borderBottomWidth: 1, borderColor: colors.border }, cell: { color: colors.text, fontSize: 13, paddingRight: 12 }, reasonCell: { width: 180 }, entityCell: { width: 130 }, detailCell: { width: 210 }, statusCell: { width: 140 }, status: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 }, success: { backgroundColor: colors.success }, pending: { backgroundColor: colors.text }, failed: { backgroundColor: colors.danger }, statusText: { color: colors.text, fontSize: 12, fontWeight: '900' }, pendingText: { color: colors.background }, muted: { color: colors.muted, padding: 20 } });

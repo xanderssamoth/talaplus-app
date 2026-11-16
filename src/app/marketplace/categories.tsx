@@ -45,7 +45,7 @@ export default function CategoriesScreen() {
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
         ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noContentTitle')} body={t('noProducts')} />}
-        ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
+        ListFooterComponent={loading && items.length ? <LoadingState compact /> : undefined}
         renderItem={({ item }) => (
           <Pressable style={styles.item} onPress={() => router.push({ pathname: '/marketplace/category/[id]', params: { id: item.id, name: item.name } })}>
             <FontAwesome6 name={item.icon as keyof typeof FontAwesome6.glyphMap} size={24} color={item.color} />

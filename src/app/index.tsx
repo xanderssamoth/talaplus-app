@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Animated, ImageBackground, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +41,13 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <ImageBackground source={require('@assets/home-screen.png')} style={styles.background} resizeMode="cover">
+    <View style={styles.background}>
+      <Image
+        pointerEvents="none"
+        source={require('@assets/home-screen.png')}
+        style={styles.backgroundImage}
+        resizeMode="contain"
+      />
       <SafeAreaView style={styles.overlay}>
         <Animated.View
           pointerEvents={isNavigating ? 'none' : 'auto'}
@@ -102,7 +108,7 @@ export default function WelcomeScreen() {
           </Pressable>
         </Animated.View>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -110,6 +116,13 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   overlay: {
     flex: 1,

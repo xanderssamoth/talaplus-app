@@ -445,7 +445,7 @@ export default function CreateVideoScreen() {
               keyExtractor={(item) => item.id}
               onEndReached={() => loadUserMedia(userMediaPage + 1)}
               onEndReachedThreshold={0.4}
-              ListFooterComponent={userMediaLoading ? <LoadingState compact /> : null}
+              ListFooterComponent={userMediaLoading ? <LoadingState compact /> : undefined}
               renderItem={({ item }) => (
                 <Pressable style={[styles.modalRow, belongsTo === item.id && styles.modalRowActive]} onPress={() => { setBelongsTo(item.id); setParentModalVisible(false); }}>
                   <MediaCover uri={item.thumbnail} isAudio={item.isAudio} style={styles.modalThumb} />
@@ -473,7 +473,7 @@ export default function CreateVideoScreen() {
               keyExtractor={(item) => item.id}
               onEndReached={() => loadCategories(categoryPage + 1)}
               onEndReachedThreshold={0.4}
-              ListFooterComponent={categoriesLoading ? <LoadingState compact /> : null}
+              ListFooterComponent={categoriesLoading ? <LoadingState compact /> : undefined}
               renderItem={({ item }) => {
                 const active = selectedCategories.includes(item.id);
                 return (

@@ -48,6 +48,7 @@ export default function ProfileScreen() {
     ['credit-card', 'payments', '/payments'],
     ['share-2', 'referral', '/profile/referral'],
     ['credit-card', 'wallet', '/profile/wallet'],
+    ['shield', 'parentalControl', '/profile/parental'],
     ['settings', 'settings', '/profile/settings'],
   ];
 

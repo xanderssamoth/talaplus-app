@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, StatusBar } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { StatusBar } from 'expo-status-bar';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
@@ -10,11 +11,7 @@ export default function HomeSceen() {
 
   return (
     <>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
+      <StatusBar style="light" />
       <SafeAreaView style={{ flex: 1 }}>
         {/* 🔝 HEADER FIXE */}
         <View style={styles.headerContainer}>

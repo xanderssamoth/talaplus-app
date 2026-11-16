@@ -58,7 +58,7 @@ export default function CategoryProductsScreen() {
         onEndReached={() => load(page + 1)}
         onEndReachedThreshold={0.4}
         ListEmptyComponent={loading ? <LoadingState /> : <EmptyState title={t('noProductTitle')} body={t('noCategoryProductsBody')} />}
-        ListFooterComponent={loading && items.length ? <LoadingState compact /> : null}
+        ListFooterComponent={loading && items.length ? <LoadingState compact /> : undefined}
         renderItem={({ item }) => <View style={styles.cardWrap}><ProductCard product={item} /></View>}
       />
     </SafeAreaView>

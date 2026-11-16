@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
@@ -29,7 +30,7 @@ export default function MarketplaceScreen() {
 
   return (
     <>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <StatusBar style="light" />
       <SafeAreaView style={styles.container}>
         <View style={styles.marketHeader}><Pressable onPress={() => router.back()}><Feather name="arrow-left" size={24} color={colors.text} /></Pressable><View style={styles.marketHeaderContent}><AppHeader title={t('marketplace')} showAvatar searchType="product" /></View></View>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

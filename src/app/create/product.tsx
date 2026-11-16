@@ -279,7 +279,7 @@ export default function CreateProductScreen() {
               keyExtractor={(item) => item.id}
               onEndReached={() => loadCategories(categoryPage + 1)}
               onEndReachedThreshold={0.4}
-              ListFooterComponent={categoriesLoading ? <LoadingState compact /> : null}
+              ListFooterComponent={categoriesLoading ? <LoadingState compact /> : undefined}
               renderItem={({ item }) => <CategoryRow category={item} active={selectedCategory === item.id} onPress={() => { setSelectedCategory(item.id); setCategoryModalVisible(false); }} />}
             />
           </View>

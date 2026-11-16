@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ComponentRef } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +17,7 @@ const promptKeys = ['aiPromptWatch', 'aiPromptLearn', 'aiPromptBusiness', 'aiPro
 
 export default function AiScreen() {
   const { t } = useTranslation();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const [message, setMessage] = useState('');
   const [items, setItems] = useState<ChatItem[]>([
     { id: 'hello', role: 'assistant', text: t('aiGreeting') },

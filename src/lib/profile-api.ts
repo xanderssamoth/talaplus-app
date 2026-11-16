@@ -55,6 +55,25 @@ export const fetchEarningStats = async (id: string) => object((await apiRequest<
 export const fetchPremiumPricing = async () => (await fetchList('/v1/user/premium/pricing')).items;
 export const fetchIdCard = async () => (await apiRequest<unknown>('/v1/user/me/id-card')).data;
 
+export type ChildInvitation = { id: string; status: string; parent: Profile };
+function childInvitation(value: unknown): ChildInvitation {
+  const source = object(value);
+  return { id: string(source.id), status: string(source.status), parent: normalizeProfile(source.parent_user ?? source.parentUser ?? source.parent) };
+}
+export async function fetchChildInvitations(id: string) {
+  const response = await apiRequest<unknown>(`${userPath(id)}/children/invitations`);
+  const data = object(response.data);
+  const items = array(data.invitations ?? response.data).map(childInvitation);
+  return { hasPendingInvitations: Boolean(data.has_pending_invitations), invitations: items };
+}
+export const acceptChildInvitation = (invitationId: string) => apiRequest(`/v1/user/children/invitations/${encodeURIComponent(invitationId)}/accept`, { method: 'POST' });
+export async function searchUsersForChildren(userId: string, word: string) {
+  const response = await apiRequest<unknown>(`/v1/user/search/by-word?user_id=${encodeURIComponent(userId)}&word=${encodeURIComponent(word)}`);
+  return array(response.data).map(normalizeProfile).filter(user => user.id && user.id !== userId);
+}
+export const inviteChildren = (childIds: string[]) => apiRequest('/v1/user/children/invitations', { method: 'POST', body: JSON.stringify({ child_ids: childIds }) });
+export const toggleChildLock = (id: string) => apiRequest(`${userPath(id)}/child-lock-code`, { method: 'PATCH' });
+
 export async function uploadAvatar(id: string, avatarBase64: string) {
   await apiRequest<unknown>(`${userPath(id)}/avatar`, { method: 'PATCH', body: JSON.stringify({ avatar_base64: avatarBase64 }) });
   return fetchProfile(id);
