@@ -189,4 +189,10 @@ Sur le profil de l'utilisateur en cours :
     ->> Un bouton "Sécurité enfant" pour forcer tous les enfants mineurs de l'utilisateur en cours à ne voir que les contenus pour enfants. API Endpoint "PATCH https://admin.talaplus.tv/api/v1/user/{id}/child-lock-code". Quand la colonne `users`.`child_lock_code` est vide de l'utilisateur en cours (id), ce bouton est vert avec l'icône "check" ✅ ; sinon le bouton sera rouge avec l'icône "times" ❌
 
 
+============
+Après être connecté, voici les fenêtres et blocs qu'il faut modifier :
+============
 
+Accueil principal :
+-> La couverture de la bannière au dessus ne s'affiche pas. Il faut voir pourquoi.
+-> Pour chaque bloc de post, 

@@ -11,7 +11,7 @@ export type Profile = {
   id: string; firstname: string; lastname: string; surname: string; name: string; username: string;
   avatarUrl: string; coverUrl: string; type: 'certified' | 'certifying' | 'uncertified';
   createdAt: string; views: number; plays: number; promoCode: string; promoCodeAt: string;
-  christianPreference: boolean; [key: string]: any;
+  christianPreference: boolean; childLockCode: string; [key: string]: any;
 };
 export function normalizeProfile(value: unknown): Profile {
   const source = object(value);
@@ -25,6 +25,7 @@ export function normalizeProfile(value: unknown): Profile {
     createdAt: string(source.created_at), views: Number(source.media_views_count || 0),
     plays: Number(source.media_plays_count || 0), promoCode: string(source.promo_code),
     promoCodeAt: string(source.promo_code_at), christianPreference: source.christian_preference === true || source.christian_preference === 1 || source.christian_preference === '1',
+    childLockCode: string(source.child_lock_code ?? source.childLockCode),
   };
 }
 export async function fetchProfile(id = getCurrentUser().id) {
